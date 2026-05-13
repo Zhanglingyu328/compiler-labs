@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DFA 与类 C 词法分析综合实验平台</title>
+  <style>
+    :root {
+      --bg: #eef4ff;
+      --card: rgba(255, 255, 255, 0.92);
+      --text: #183153;
+      --muted: #58708f;
+      --primary: #315bea;
+      --primary-2: #6f8eff;
+      --accent: #18b6a5;
+      --danger: #e04f5f;
+      --warning: #f59e0b;
+      --border: rgba(49, 91, 234, 0.14);
+      --shadow: 0 18px 42px rgba(31, 63, 130, 0.13);
+      --terminal: #181c20;
+      --terminal-text: #b6e1a3;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(111, 142, 255, 0.22), transparent 28%),
+        radial-gradient(circle at 100% 20%, rgba(24, 182, 165, 0.13), transparent 18%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+      min-height: 100vh;
+    }
+
+    .container {
+      width: min(1280px, calc(100% - 32px));
+      margin: 24px auto 40px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(49, 91, 234, 0.95), rgba(86, 204, 242, 0.92));
+      border-radius: 26px;
+      color: white;
+      padding: 30px 34px;
+      box-shadow: 0 20px 45px rgba(49, 91, 234, 0.22);
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -80px;
+      top: -80px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.16);
+    }
+
+    .title {
+      margin: 0 0 8px;
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-sub {
+      margin: 0;
+      font-size: 16px;
+      opacity: 0.92;
+    }
+
+    .main-tabs {
+      display: flex;
+      gap: 12px;
+      margin: 18px 0 22px;
+      flex-wrap: wrap;
+    }
+
+    .main-tab,
+    .tab-btn,
+    .btn {
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    .main-tab:hover,
+    .tab-btn:hover,
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .main-tab {
+      border: none;
+      border-radius: 999px;
+      padding: 13px 22px;
+      background: rgba(49, 91, 234, 0.08);
+      color: var(--primary);
+      font-weight: 850;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .main-tab.active {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+      color: white;
+      box-shadow: 0 8px 20px rgba(49, 91, 234, 0.22);
+    }
+
+    .module { display: none; }
+    .module.active { display: block; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.12fr 0.88fr;
+      gap: 22px;
+    }
+
+    .layout.equal {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 24px;
+    }
+
+    .sub {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .tab-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 11px 16px;
+      background: rgba(49, 91, 234, 0.08);
+      color: var(--primary);
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(49, 91, 234, 0.22);
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .tuple-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .tuple-item {
+      background: rgba(49, 91, 234, 0.05);
+      border: 1px solid rgba(49, 91, 234, 0.1);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .tuple-item strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--primary);
+    }
+
+    .mono {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .input {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid rgba(49, 91, 234, 0.2);
+      border-radius: 10px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    .input:focus {
+      border-color: rgba(49, 91, 234, 0.55);
+      box-shadow: 0 0 0 4px rgba(49, 91, 234, 0.08);
+    }
+
+    textarea.input {
+      resize: vertical;
+      min-height: 110px;
+      font-family: Consolas, "Courier New", monospace;
+      line-height: 1.6;
+    }
+
+    .code-area {
+      min-height: 440px !important;
+      font-size: 15px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .actions.three {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 780;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, #4b61ea 0%, #7a90ff 100%);
+      box-shadow: 0 10px 24px rgba(49, 91, 234, 0.2);
+    }
+
+    .btn.secondary {
+      background: linear-gradient(135deg, #49b3a6 0%, #7ccfc3 100%);
+      box-shadow: 0 10px 24px rgba(24, 182, 165, 0.18);
+    }
+
+    .btn.danger {
+      background: linear-gradient(135deg, #e04f5f 0%, #ff7b88 100%);
+      box-shadow: 0 10px 24px rgba(224, 79, 95, 0.18);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .terminal {
+      margin-top: 14px;
+      background: var(--terminal);
+      color: var(--terminal-text);
+      border-radius: 14px;
+      padding: 14px;
+      min-height: 280px;
+      overflow: auto;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    .terminal.small {
+      min-height: 145px;
+      max-height: 260px;
+    }
+
+    .table-wrap {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .table-scroll {
+      overflow: auto;
+      max-height: 540px;
+      border-radius: 12px;
+      border: 1px solid rgba(49, 91, 234, 0.1);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      text-align: center;
+      padding: 10px;
+      border-bottom: 1px solid rgba(49, 91, 234, 0.08);
+      font-size: 14px;
+    }
+
+    th {
+      color: var(--primary);
+      font-weight: 850;
+      background: rgba(49, 91, 234, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: rgba(49, 91, 234, 0.025); }
+
+    .msg {
+      margin-top: 8px;
+      color: #0d7d70;
+      font-size: 13px;
+      min-height: 20px;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(24, 182, 165, 0.1);
+      color: #0d7d70;
+      border: 1px solid rgba(24, 182, 165, 0.2);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-weight: 750;
+      font-size: 13px;
+    }
+
+    .notice {
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      background: rgba(245, 158, 11, 0.08);
+      color: #8a5b00;
+      line-height: 1.7;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 980px) {
+      .layout,
+      .layout.equal,
+      .tuple-grid,
+      .actions,
+      .actions.three,
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+      .title { font-size: 30px; }
+      .container { width: min(100% - 20px, 1280px); }
+      .hero { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <h1 class="title">DFA 与类 C 语言词法分析综合实验平台</h1>
+      <p class="hero-sub">Compiler Design Lab 1 + Lab 2 · 从自动机字符串识别到源代码 Token 扫描</p>
+    </header>
+
+    <div class="main-tabs">
+      <button class="main-tab active" data-module="dfa" type="button">DFA 可视化实验</button>
+      <button class="main-tab" data-module="scanner" type="button">类 C 词法分析器</button>
+      <button class="main-tab" data-module="intro" type="button">实验说明与报告亮点</button>
+    </div>
+
+    <section id="module-dfa" class="module active">
+      <div class="layout">
+        <section class="card">
+          <h2>实验案例</h2>
+          <p class="sub">可切换内置案例，或填写自定义五元组并立即启用。</p>
+
+          <div class="tabs">
+            <button class="tab-btn active" data-target="basic" type="button">以 ab 结尾</button>
+            <button class="tab-btn" data-target="to" type="button">包含 to</button>
+            <button class="tab-btn" data-target="custom" type="button">自定义 DFA</button>
+          </div>
+
+          <div id="panel-basic" class="panel active">
+            <div class="tuple-grid">
+              <div class="tuple-item"><strong>Q</strong><div class="mono">{ q0, q1, q2 }</div></div>
+              <div class="tuple-item"><strong>Sigma</strong><div class="mono">{ a, b }</div></div>
+              <div class="tuple-item"><strong>q0</strong><div class="mono">q0</div></div>
+              <div class="tuple-item"><strong>F</strong><div class="mono">{ q2 }</div></div>
+            </div>
+            <div class="tuple-item" style="margin-top: 12px;">
+              <strong>delta</strong>
+              <div class="mono">q0 a q1
+q0 b q0
+q1 a q1
+q1 b q2
+q2 a q1
+q2 b q0</div>
+            </div>
+          </div>
+
+          <div id="panel-to" class="panel">
+            <div class="tuple-grid">
+              <div class="tuple-item"><strong>Q</strong><div class="mono">{ q0, q1, q2 }</div></div>
+              <div class="tuple-item"><strong>Sigma</strong><div class="mono">{ t, o, a, b }</div></div>
+              <div class="tuple-item"><strong>q0</strong><div class="mono">q0</div></div>
+              <div class="tuple-item"><strong>F</strong><div class="mono">{ q2 }</div></div>
+            </div>
+            <div class="tuple-item" style="margin-top: 12px;">
+              <strong>delta</strong>
+              <div class="mono">q0 t q1
+q0 o q0
+q0 a q0
+q0 b q0
+q1 o q2
+q1 t q1
+q1 a q0
+q1 b q0
+q2 t q2
+q2 o q2
+q2 a q2
+q2 b q2</div>
+            </div>
+          </div>
+
+          <div id="panel-custom" class="panel">
+            <div class="tuple-grid">
+              <div class="tuple-item">
+                <strong>Q（空格分隔）</strong>
+                <input id="custom-states" class="input" type="text" placeholder="q0 q1 q2" autocomplete="off" />
+              </div>
+              <div class="tuple-item">
+                <strong>Sigma（空格分隔）</strong>
+                <input id="custom-alphabet" class="input" type="text" placeholder="a b" autocomplete="off" />
+              </div>
+              <div class="tuple-item">
+                <strong>q0</strong>
+                <input id="custom-start" class="input" type="text" placeholder="q0" autocomplete="off" />
+              </div>
+              <div class="tuple-item">
+                <strong>F（空格分隔）</strong>
+                <input id="custom-accept" class="input" type="text" placeholder="q2" autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="tuple-item" style="margin-top: 12px;">
+              <strong>delta（每行: 当前状态 输入符号 目标状态）</strong>
+              <textarea id="custom-trans" class="input" placeholder="q0 a q1
+q0 b q0
+q1 a q1
+q1 b q2
+q2 a q1
+q2 b q0"></textarea>
+            </div>
+
+            <div class="actions">
+              <button class="btn secondary" id="btn-save-custom" type="button">保存并启用</button>
+              <button class="btn" id="btn-fill-template" type="button">按 Q 和 Sigma 生成模板</button>
+            </div>
+            <div id="custom-msg" class="msg"></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>运行区</h2>
+          <p class="sub">输入字符串判定，枚举长度小于等于 N 的合法字符串，或显示当前转移表。</p>
+
+          <div class="row">
+            <input id="input-str" class="input" type="text" placeholder="输入待判定字符串" autocomplete="off" />
+            <input id="input-n" class="input" type="number" min="1" max="8" value="4" />
+          </div>
+
+          <div class="actions">
+            <button class="btn" id="btn-judge" type="button">判定输入字符串</button>
+            <button class="btn secondary" id="btn-enum" type="button">输出合法字符串</button>
+            <button class="btn" id="btn-check" type="button">检查 DFA 合法性</button>
+            <button class="btn secondary" id="btn-table" type="button">显示状态转移表</button>
+          </div>
+
+          <div class="terminal" id="terminal">$ 当前案例: 以 ab 结尾
+$ 可执行: 判定 / 枚举 / 检查 / 显示转移表</div>
+          <div class="table-wrap" id="table-wrap"></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="module-scanner" class="module">
+      <div class="layout equal">
+        <section class="card">
+          <h2>源代码输入</h2>
+          <p class="sub">输入类 C 语言代码，点击开始分析，生成 token 序列。该模块用于展示 scanner 对源程序字符流的处理过程。</p>
+
+          <textarea id="codeInput" class="input code-area" spellcheck="false" placeholder="在这里输入类 C 代码，例如：while(true) {int a=0;}"></textarea>
+
+          <div class="actions three">
+            <button class="btn secondary" onclick="loadScannerExample()" type="button">加载示例</button>
+            <button class="btn" onclick="runScanner()" type="button">开始词法分析</button>
+            <button class="btn danger" onclick="clearScanner()" type="button">清空</button>
+          </div>
+
+          <div class="notice">
+            提示：本 UI 版本会识别关键字、ID、INT、FLO、ADD、MUL、ROP、ASG、括号、逗号、分号，以及 ++、--。它还支持 // 单行注释和词法错误定位。
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Token 输出</h2>
+          <p class="sub">显示 token 类型、属性值、行号和列号，方便作为后续语法分析阶段的输入。</p>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>序号</th>
+                  <th>Token 类型</th>
+                  <th>属性值</th>
+                  <th>行号</th>
+                  <th>列号</th>
+                </tr>
+              </thead>
+              <tbody id="tokenTable"></tbody>
+            </table>
+          </div>
+
+          <div class="row">
+            <div>
+              <h2 style="margin-top: 18px; font-size: 20px;">错误信息</h2>
+              <div class="terminal small" id="scannerErrors">$ 暂无错误</div>
+            </div>
+
+            <div>
+              <h2 style="margin-top: 18px; font-size: 20px;">Token 统计</h2>
+              <div class="terminal small" id="scannerStats">$ 暂无统计</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="module-intro" class="module">
+      <section class="card">
+        <h2>实验说明与报告亮点</h2>
+        <p class="sub">本平台将第一次实验的 DFA 自动机实验与第二次实验的类 C 语言词法分析器实验融合，展示从理论自动机到编译器前端 scanner 的完整过程。</p>
+
+        <div class="badge-row">
+          <span class="badge">DFA 五元组</span>
+          <span class="badge">字符串判定</span>
+          <span class="badge">合法串枚举</span>
+          <span class="badge">Token 扫描</span>
+          <span class="badge">错误定位</span>
+          <span class="badge">统计分析</span>
+        </div>
+
+        <div class="tuple-grid" style="margin-top: 18px;">
+          <div class="tuple-item">
+            <strong>模块一：DFA 可视化实验</strong>
+            <div class="mono">用于展示确定有限自动机的五元组、状态转移、字符串判定和合法字符串枚举。支持内置案例和自定义 DFA。</div>
+          </div>
+
+          <div class="tuple-item">
+            <strong>模块二：类 C 词法分析器</strong>
+            <div class="mono">用于扫描类 C 语言源代码，识别关键字、标识符、整数、实数、运算符、界符，并输出 token 序列。</div>
+          </div>
+
+          <div class="tuple-item">
+            <strong>DFA 与 scanner 的关系</strong>
+            <div class="mono">词法分析器本质上可以看作多个 DFA 的组合。每类 token 都可以由正则式描述，再进一步转换为 NFA/DFA 进行识别。</div>
+          </div>
+
+          <div class="tuple-item">
+            <strong>高分拓展点</strong>
+            <div class="mono">本系统加入了自定义 DFA、状态转移表、token 表格展示、行列号定位、词法错误恢复、token 数量统计和 Web 可视化页面。</div>
+          </div>
+        </div>
+
+        <div class="notice">
+          报告建议写法：本实验在命令行 scanner 基础上进一步实现了 Web 综合可视化平台，使 DFA 的理论实验与类 C 语言词法分析器的工程实现形成对应关系，体现了正则式、自动机和编译器前端之间的联系。
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <script>
+    // =============================
+    // 主模块切换
+    // =============================
+    document.querySelectorAll(".main-tab").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.module;
+
+        document.querySelectorAll(".main-tab").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        document.querySelectorAll(".module").forEach((m) => m.classList.remove("active"));
+        document.getElementById(`module-${target}`).classList.add("active");
+      });
+    });
+
+    // =============================
+    // DFA 模块
+    // =============================
+    const builtinDfa = {
+      basic: {
+        alphabet: ["a", "b"],
+        states: ["q0", "q1", "q2"],
+        start: "q0",
+        accept: ["q2"],
+        transitions: {
+          "q0,a": "q1", "q0,b": "q0",
+          "q1,a": "q1", "q1,b": "q2",
+          "q2,a": "q1", "q2,b": "q0"
+        }
+      },
+      to: {
+        alphabet: ["t", "o", "a", "b"],
+        states: ["q0", "q1", "q2"],
+        start: "q0",
+        accept: ["q2"],
+        transitions: {
+          "q0,t": "q1", "q0,o": "q0", "q0,a": "q0", "q0,b": "q0",
+          "q1,o": "q2", "q1,t": "q1", "q1,a": "q0", "q1,b": "q0",
+          "q2,t": "q2", "q2,o": "q2", "q2,a": "q2", "q2,b": "q2"
+        }
+      }
+    };
+
+    let customDfa = null;
+    let currentKey = "basic";
+
+    const terminal = document.getElementById("terminal");
+    const tableWrap = document.getElementById("table-wrap");
+    const panels = {
+      basic: document.getElementById("panel-basic"),
+      to: document.getElementById("panel-to"),
+      custom: document.getElementById("panel-custom")
+    };
+
+    function getCurrentDfa() {
+      if (currentKey === "custom") return customDfa;
+      return builtinDfa[currentKey];
+    }
+
+    function setTerminal(text) {
+      terminal.textContent = text;
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function parseSpaceList(raw) {
+      return raw.trim().split(/\s+/).filter(Boolean);
+    }
+
+    function validateDfa(dfa) {
+      if (!dfa) return "未加载 DFA";
+      if (!dfa.alphabet.length) return "字符集不能为空";
+      if (!dfa.states.length) return "状态集不能为空";
+      if (!dfa.start) return "开始状态不能为空";
+      if (!dfa.states.includes(dfa.start)) return "开始状态不在状态集中";
+      if (!dfa.accept.length) return "接受状态集不能为空";
+
+      for (const f of dfa.accept) {
+        if (!dfa.states.includes(f)) return `接受状态 ${f} 不在状态集中`;
+      }
+
+      for (const s of dfa.states) {
+        for (const c of dfa.alphabet) {
+          const key = `${s},${c}`;
+          const target = dfa.transitions[key];
+          if (!target) return `缺少转移 delta(${s}, ${c})`;
+          if (!dfa.states.includes(target)) return `转移目标状态 ${target} 不在状态集中`;
+        }
+      }
+
+      return "";
+    }
+
+    function runDfa(dfa, input, showProcess) {
+      let current = dfa.start;
+      const lines = [];
+
+      if (showProcess) {
+        lines.push(`$ 输入字符串: ${input}`);
+        lines.push(`$ 开始状态: ${current}`);
+      }
+
+      for (const ch of input) {
+        if (!dfa.alphabet.includes(ch)) {
+          lines.push(`$ 输入字符 ${ch} 不在字符集中`);
+          return { accepted: false, lines };
+        }
+
+        const key = `${current},${ch}`;
+        const next = dfa.transitions[key];
+        if (!next) {
+          lines.push(`$ 不存在转移 delta(${current}, ${ch})`);
+          return { accepted: false, lines };
+        }
+
+        if (showProcess) lines.push(`$ 读入 ${ch}: ${current} -> ${next}`);
+        current = next;
+      }
+
+      const accepted = dfa.accept.includes(current);
+      if (showProcess) {
+        lines.push(`$ 结束状态: ${current}`);
+        lines.push(accepted ? "$ 结果: 属于该 DFA 语言" : "$ 结果: 不属于该 DFA 语言");
+      }
+
+      return { accepted, lines };
+    }
+
+    function renderTable(dfa) {
+      let html = "<div class='table-scroll'><table><thead><tr><th>当前状态</th>";
+      for (const c of dfa.alphabet) html += `<th>输入 ${c}</th>`;
+      html += "</tr></thead><tbody>";
+
+      for (const s of dfa.states) {
+        html += `<tr><td>${s}</td>`;
+        for (const c of dfa.alphabet) {
+          const key = `${s},${c}`;
+          html += `<td>${dfa.transitions[key] || "-"}</td>`;
+        }
+        html += "</tr>";
+      }
+
+      html += "</tbody></table></div>";
+      tableWrap.innerHTML = html;
+      tableWrap.style.display = "block";
+    }
+
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.target;
+        currentKey = target;
+
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        Object.values(panels).forEach((p) => p.classList.remove("active"));
+        panels[target].classList.add("active");
+        tableWrap.style.display = "none";
+
+        if (target === "custom" && !customDfa) {
+          setTerminal("$ 当前案例: 自定义 DFA\n$ 请填写五元组和转移表，点击 保存并启用");
+        } else {
+          setTerminal(`$ 当前案例: ${target === "basic" ? "以 ab 结尾" : target === "to" ? "包含 to" : "自定义 DFA"}\n$ 可执行: 判定 / 枚举 / 检查 / 显示转移表`);
+        }
+      });
+    });
+
+    document.getElementById("btn-fill-template").addEventListener("click", () => {
+      const states = parseSpaceList(document.getElementById("custom-states").value);
+      const alphabet = parseSpaceList(document.getElementById("custom-alphabet").value);
+
+      if (!states.length || !alphabet.length) {
+        document.getElementById("custom-msg").textContent = "请先填写状态集和字符集";
+        return;
+      }
+
+      const lines = [];
+      for (const s of states) {
+        for (const c of alphabet) lines.push(`${s} ${c} ${s}`);
+      }
+
+      document.getElementById("custom-trans").value = lines.join("\n");
+      document.getElementById("custom-msg").textContent = "模板已生成，请按需要修改目标状态";
+    });
+
+    document.getElementById("btn-save-custom").addEventListener("click", () => {
+      const states = parseSpaceList(document.getElementById("custom-states").value);
+      const alphabet = parseSpaceList(document.getElementById("custom-alphabet").value);
+      const start = document.getElementById("custom-start").value.trim();
+      const accept = parseSpaceList(document.getElementById("custom-accept").value);
+      const lines = document.getElementById("custom-trans").value.split("\n");
+
+      const transitions = {};
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/).filter(Boolean);
+        if (!parts.length) continue;
+        if (parts.length !== 3) {
+          document.getElementById("custom-msg").textContent = "转移表每行必须是: 状态 字符 目标状态";
+          return;
+        }
+        transitions[`${parts[0]},${parts[1]}`] = parts[2];
+      }
+
+      const draft = { states, alphabet, start, accept, transitions };
+      const err = validateDfa(draft);
+      if (err) {
+        document.getElementById("custom-msg").textContent = `保存失败: ${err}`;
+        return;
+      }
+
+      customDfa = draft;
+      currentKey = "custom";
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelector('.tab-btn[data-target="custom"]').classList.add("active");
+      Object.values(panels).forEach((p) => p.classList.remove("active"));
+      panels.custom.classList.add("active");
+      tableWrap.style.display = "none";
+
+      document.getElementById("custom-msg").textContent = "保存成功，当前已启用自定义 DFA";
+      setTerminal("$ 自定义 DFA 已启用\n$ 可执行: 判定 / 枚举 / 检查 / 显示转移表");
+    });
+
+    document.getElementById("btn-check").addEventListener("click", () => {
+      const dfa = getCurrentDfa();
+      const err = validateDfa(dfa);
+      setTerminal(err ? `$ DFA 检查失败\n$ ${err}` : "$ DFA 检查通过\n$ 开始状态合法\n$ 接受状态集合法\n$ 转移表完整");
+    });
+
+    document.getElementById("btn-judge").addEventListener("click", () => {
+      const dfa = getCurrentDfa();
+      if (!dfa) {
+        setTerminal("$ 当前是自定义模式，但还未保存自定义 DFA");
+        return;
+      }
+
+      const err = validateDfa(dfa);
+      if (err) {
+        setTerminal(`$ 当前 DFA 不合法\n$ ${err}`);
+        return;
+      }
+
+      const input = document.getElementById("input-str").value;
+      if (input.length === 0) {
+        setTerminal("$ 请输入待判定字符串");
+        return;
+      }
+
+      const result = runDfa(dfa, input, true);
+      setTerminal(result.lines.join("\n"));
+    });
+
+    document.getElementById("btn-enum").addEventListener("click", () => {
+      const dfa = getCurrentDfa();
+      if (!dfa) {
+        setTerminal("$ 当前是自定义模式，但还未保存自定义 DFA");
+        return;
+      }
+
+      const err = validateDfa(dfa);
+      if (err) {
+        setTerminal(`$ 当前 DFA 不合法\n$ ${err}`);
+        return;
+      }
+
+      const n = Number.parseInt(document.getElementById("input-n").value, 10);
+      if (Number.isNaN(n) || n < 1 || n > 8) {
+        setTerminal("$ 请输入 1 到 8 之间的最大长度 N");
+        return;
+      }
+
+      const result = [];
+      function dfs(str, state) {
+        if (str.length > n) return;
+        if (str.length > 0 && dfa.accept.includes(state)) result.push(str);
+        if (str.length === n) return;
+        for (const c of dfa.alphabet) {
+          const next = dfa.transitions[`${state},${c}`];
+          if (next) dfs(str + c, next);
+        }
+      }
+
+      dfs("", dfa.start);
+      const unique = Array.from(new Set(result));
+      unique.sort((a, b) => (a.length === b.length ? a.localeCompare(b) : a.length - b.length));
+
+      if (!unique.length) setTerminal(`$ 长度 <= ${n} 的合法字符串\n$ (无)`);
+      else setTerminal(`$ 长度 <= ${n} 的合法字符串\n${unique.map((s) => `$ ${s}`).join("\n")}`);
+    });
+
+    document.getElementById("btn-table").addEventListener("click", () => {
+      const dfa = getCurrentDfa();
+      if (!dfa) {
+        setTerminal("$ 当前是自定义模式，但还未保存自定义 DFA");
+        return;
+      }
+
+      const err = validateDfa(dfa);
+      if (err) {
+        setTerminal(`$ 当前 DFA 不合法\n$ ${err}`);
+        return;
+      }
+
+      renderTable(dfa);
+      setTerminal("$ 已显示当前 DFA 的状态转移表");
+    });
+
+    // =============================
+    // Scanner 模块
+    // =============================
+    const scannerKeywords = {
+      "int": "INT",
+      "float": "FLOAT",
+      "void": "VOID",
+      "if": "IF",
+      "else": "ELSE",
+      "while": "WHILE",
+      "return": "RETURN",
+      "input": "INPUT",
+      "print": "PRINT"
+    };
+
+    function scannerIsLetter(ch) {
+      return /[a-zA-Z_]/.test(ch);
+    }
+
+    function scannerIsLetterOrDigit(ch) {
+      return /[a-zA-Z0-9_]/.test(ch);
+    }
+
+    function scannerIsDigit(ch) {
+      return /[0-9]/.test(ch);
+    }
+
+    function scannerScan(code) {
+      const tokens = [];
+      const errors = [];
+      let i = 0;
+      let line = 1;
+      let col = 1;
+
+      function peek(offset = 0) {
+        return code[i + offset] || "";
+      }
+
+      function advance() {
+        const ch = code[i++];
+        if (ch === "\n") {
+          line++;
+          col = 1;
+        } else {
+          col++;
+        }
+        return ch;
+      }
+
+      function addToken(type, value, startLine, startCol) {
+        tokens.push({ type, value, line: startLine, column: startCol });
+      }
+
+      while (i < code.length) {
+        let ch = peek();
+
+        if (/\s/.test(ch)) {
+          advance();
+          continue;
+        }
+
+        const startLine = line;
+        const startCol = col;
+
+        if (scannerIsLetter(ch)) {
+          let lexeme = "";
+          while (scannerIsLetterOrDigit(peek())) lexeme += advance();
+
+          if (scannerKeywords[lexeme]) addToken(scannerKeywords[lexeme], lexeme, startLine, startCol);
+          else addToken("ID", lexeme, startLine, startCol);
+        }
+
+        else if (scannerIsDigit(ch)) {
+          let lexeme = "";
+          let hasDot = false;
+
+          while (scannerIsDigit(peek())) lexeme += advance();
+
+          if (peek() === ".") {
+            hasDot = true;
+            lexeme += advance();
+
+            if (!scannerIsDigit(peek())) {
+              errors.push(`第 ${startLine} 行，第 ${startCol} 列：非法实数 ${lexeme}`);
+              continue;
+            }
+
+            while (scannerIsDigit(peek())) lexeme += advance();
+          }
+
+          addToken(hasDot ? "FLO" : "INT", lexeme, startLine, startCol);
+        }
+
+        else if (ch === "+") {
+          advance();
+          if (peek() === "+") {
+            advance();
+            addToken("AAA", "++", startLine, startCol);
+          } else {
+            addToken("ADD", "+", startLine, startCol);
+          }
+        }
+
+        else if (ch === "-") {
+          advance();
+          if (peek() === "-") {
+            advance();
+            addToken("AAS", "--", startLine, startCol);
+          } else {
+            addToken("ADD", "-", startLine, startCol);
+          }
+        }
+
+        else if (ch === "*") {
+          advance();
+          addToken("MUL", "*", startLine, startCol);
+        }
+
+        else if (ch === "/") {
+          if (peek(1) === "/") {
+            while (peek() !== "\n" && peek() !== "") advance();
+          } else if (peek(1) === "*") {
+            advance();
+            advance();
+            let closed = false;
+            while (i < code.length) {
+              if (peek() === "*" && peek(1) === "/") {
+                advance();
+                advance();
+                closed = true;
+                break;
+              }
+              advance();
+            }
+            if (!closed) errors.push(`第 ${startLine} 行，第 ${startCol} 列：多行注释未闭合`);
+          } else {
+            advance();
+            addToken("MUL", "/", startLine, startCol);
+          }
+        }
+
+        else if (ch === "<") {
+          advance();
+          if (peek() === "=") {
+            advance();
+            addToken("ROP", "<=", startLine, startCol);
+          } else {
+            addToken("ROP", "<", startLine, startCol);
+          }
+        }
+
+        else if (ch === ">") {
+          advance();
+          if (peek() === "=") {
+            advance();
+            addToken("ROP", ">=", startLine, startCol);
+          } else {
+            addToken("ROP", ">", startLine, startCol);
+          }
+        }
+
+        else if (ch === "=") {
+          advance();
+          if (peek() === "=") {
+            advance();
+            addToken("ROP", "==", startLine, startCol);
+          } else {
+            addToken("ASG", "=", startLine, startCol);
+          }
+        }
+
+        else if (ch === "!") {
+          advance();
+          if (peek() === "=") {
+            advance();
+            addToken("ROP", "!=", startLine, startCol);
+          } else {
+            errors.push(`第 ${startLine} 行，第 ${startCol} 列：非法字符 !，是否想输入 !=`);
+          }
+        }
+
+        else {
+          const delimiterMap = {
+            "(": "LPA",
+            ")": "RPA",
+            "[": "LBK",
+            "]": "RBK",
+            "{": "LBR",
+            "}": "RBR",
+            ",": "CMA",
+            ";": "SCO"
+          };
+
+          if (delimiterMap[ch]) {
+            advance();
+            addToken(delimiterMap[ch], ch, startLine, startCol);
+          } else {
+            errors.push(`第 ${startLine} 行，第 ${startCol} 列：无法识别字符 ${ch}`);
+            advance();
+          }
+        }
+      }
+
+      return { tokens, errors };
+    }
+
+    function runScanner() {
+      const code = document.getElementById("codeInput").value;
+      const result = scannerScan(code);
+      const tbody = document.getElementById("tokenTable");
+      tbody.innerHTML = "";
+
+      result.tokens.forEach((token, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${token.type}</td>
+          <td>${escapeHtml(token.value)}</td>
+          <td>${token.line}</td>
+          <td>${token.column}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (result.errors.length === 0) {
+        document.getElementById("scannerErrors").textContent = "$ 无词法错误";
+      } else {
+        document.getElementById("scannerErrors").textContent = result.errors.map(e => "$ " + e).join("\n");
+      }
+
+      const stat = {};
+      result.tokens.forEach((token) => {
+        stat[token.type] = (stat[token.type] || 0) + 1;
+      });
+
+      let statText = "";
+      Object.keys(stat).sort().forEach((key) => {
+        statText += `$ ${key}: ${stat[key]}\n`;
+      });
+
+      document.getElementById("scannerStats").textContent = statText || "$ 暂无统计";
+    }
+
+    function loadScannerExample() {
+      document.getElementById("codeInput").value =
+`void qsort(int low, int high) {
+    int i;
+    int j;
+    float x;
+    i = low;
+    j = high;
+    while (i < j) {
+        i++;
+        j--;
+    }
+    return;
+}`;
+    }
+
+    function clearScanner() {
+      document.getElementById("codeInput").value = "";
+      document.getElementById("tokenTable").innerHTML = "";
+      document.getElementById("scannerErrors").textContent = "$ 暂无错误";
+      document.getElementById("scannerStats").textContent = "$ 暂无统计";
+    }
+
+    function escapeHtml(raw) {
+      return String(raw)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>

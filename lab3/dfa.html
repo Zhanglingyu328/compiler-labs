@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>实验三 LR(0) 项目集规范族可视化平台</title>
+  <style>
+    :root {
+      --bg: #eef4ff;
+      --card: rgba(255, 255, 255, 0.92);
+      --text: #183153;
+      --muted: #58708f;
+      --primary: #315bea;
+      --primary-2: #6f8eff;
+      --accent: #18b6a5;
+      --danger: #e04f5f;
+      --warning: #f59e0b;
+      --border: rgba(49, 91, 234, 0.14);
+      --shadow: 0 18px 42px rgba(31, 63, 130, 0.13);
+      --terminal: #181c20;
+      --terminal-text: #b6e1a3;
+      --code-bg: #101827;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(111, 142, 255, 0.22), transparent 28%),
+        radial-gradient(circle at 100% 20%, rgba(24, 182, 165, 0.13), transparent 18%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+      min-height: 100vh;
+    }
+
+    .container {
+      width: min(1360px, calc(100% - 32px));
+      margin: 24px auto 42px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(49, 91, 234, 0.96), rgba(86, 204, 242, 0.92));
+      border-radius: 28px;
+      color: white;
+      padding: 30px 34px;
+      box-shadow: 0 20px 45px rgba(49, 91, 234, 0.22);
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "LR(0)";
+      position: absolute;
+      right: 30px;
+      top: 12px;
+      font-size: 84px;
+      font-weight: 900;
+      opacity: 0.12;
+      letter-spacing: 4px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -70px;
+      bottom: -90px;
+      width: 230px;
+      height: 230px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.16);
+    }
+
+    .title {
+      margin: 0 0 10px;
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-sub {
+      margin: 0;
+      font-size: 16px;
+      opacity: 0.92;
+      line-height: 1.7;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-weight: 750;
+      font-size: 13px;
+      backdrop-filter: blur(8px);
+    }
+
+    .main-tabs {
+      display: flex;
+      gap: 12px;
+      margin: 18px 0 22px;
+      flex-wrap: wrap;
+    }
+
+    .main-tab,
+    .btn,
+    .mini-btn {
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    .main-tab:hover,
+    .btn:hover,
+    .mini-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .main-tab {
+      border: none;
+      border-radius: 999px;
+      padding: 13px 22px;
+      background: rgba(49, 91, 234, 0.08);
+      color: var(--primary);
+      font-weight: 850;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .main-tab.active {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+      color: white;
+      box-shadow: 0 8px 20px rgba(49, 91, 234, 0.22);
+    }
+
+    .module { display: none; }
+    .module.active { display: block; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 0.88fr 1.12fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .layout.equal {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 23px;
+    }
+
+    .sub {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid rgba(49, 91, 234, 0.2);
+      border-radius: 12px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    .input:focus {
+      border-color: rgba(49, 91, 234, 0.55);
+      box-shadow: 0 0 0 4px rgba(49, 91, 234, 0.08);
+    }
+
+    textarea.input {
+      resize: vertical;
+      min-height: 145px;
+      font-family: Consolas, "Courier New", monospace;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .code-area {
+      min-height: 240px !important;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .actions.three {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, #4b61ea 0%, #7a90ff 100%);
+      box-shadow: 0 10px 24px rgba(49, 91, 234, 0.2);
+    }
+
+    .btn.secondary {
+      background: linear-gradient(135deg, #49b3a6 0%, #7ccfc3 100%);
+      box-shadow: 0 10px 24px rgba(24, 182, 165, 0.18);
+    }
+
+    .btn.danger {
+      background: linear-gradient(135deg, #e04f5f 0%, #ff7b88 100%);
+      box-shadow: 0 10px 24px rgba(224, 79, 95, 0.18);
+    }
+
+    .mini-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .mini-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 9px 13px;
+      color: var(--primary);
+      background: rgba(49, 91, 234, 0.08);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .mini-btn.active,
+    .mini-btn.primary {
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow: 0 8px 18px rgba(49, 91, 234, 0.18);
+    }
+
+    .terminal {
+      margin-top: 14px;
+      background: var(--terminal);
+      color: var(--terminal-text);
+      border-radius: 14px;
+      padding: 14px;
+      min-height: 190px;
+      max-height: 520px;
+      overflow: auto;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    .terminal.small {
+      min-height: 130px;
+      max-height: 240px;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 12px 0 16px;
+    }
+
+    .kpi {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(49, 91, 234, 0.06);
+      border: 1px solid rgba(49, 91, 234, 0.11);
+    }
+
+    .kpi strong {
+      display: block;
+      color: var(--primary);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .kpi span {
+      font-size: 26px;
+      font-weight: 900;
+    }
+
+    .states-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .state-card {
+      background: #fff;
+      border: 1px solid rgba(49, 91, 234, 0.13);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 10px 24px rgba(31, 63, 130, 0.07);
+    }
+
+    .state-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      background: linear-gradient(135deg, rgba(49, 91, 234, 0.11), rgba(24, 182, 165, 0.08));
+      border-bottom: 1px solid rgba(49, 91, 234, 0.1);
+    }
+
+    .state-id {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--primary);
+    }
+
+    .state-tag {
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 850;
+      background: rgba(24, 182, 165, 0.11);
+      color: #0d7d70;
+    }
+
+    .state-body {
+      padding: 12px 14px 14px;
+    }
+
+    .state-body h3 {
+      margin: 7px 0 6px;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .mono {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .kernel-line { color: #233b88; font-weight: 800; }
+    .closure-line { color: #26384f; }
+    .goto-line { color: #0d7d70; font-weight: 750; }
+    .conflict-line { color: var(--danger); font-weight: 900; }
+
+    .table-scroll {
+      overflow: auto;
+      max-height: 540px;
+      border-radius: 12px;
+      border: 1px solid rgba(49, 91, 234, 0.1);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      text-align: center;
+      padding: 10px;
+      border-bottom: 1px solid rgba(49, 91, 234, 0.08);
+      font-size: 14px;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--primary);
+      font-weight: 850;
+      background: rgba(49, 91, 234, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tr:nth-child(even) td { background: rgba(49, 91, 234, 0.025); }
+
+    .notice {
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      background: rgba(245, 158, 11, 0.08);
+      color: #8a5b00;
+      line-height: 1.7;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .success {
+      border-color: rgba(24, 182, 165, 0.24);
+      background: rgba(24, 182, 165, 0.09);
+      color: #0d7d70;
+    }
+
+    .graph-wrap {
+      background: #fff;
+      border: 1px solid rgba(49, 91, 234, 0.12);
+      border-radius: 18px;
+      overflow: auto;
+      padding: 12px;
+      min-height: 420px;
+    }
+
+    svg text {
+      font-family: Consolas, "Courier New", monospace;
+      fill: var(--text);
+    }
+
+    .node-rect {
+      fill: #ffffff;
+      stroke: rgba(49, 91, 234, 0.55);
+      stroke-width: 1.4;
+      filter: drop-shadow(0 6px 10px rgba(31, 63, 130, 0.12));
+    }
+
+    .edge-line {
+      stroke: rgba(24, 36, 58, 0.56);
+      stroke-width: 1.3;
+      fill: none;
+      marker-end: url(#arrow);
+    }
+
+    .edge-label {
+      font-size: 13px;
+      font-weight: 900;
+      fill: var(--primary);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 1080px) {
+      .layout,
+      .layout.equal,
+      .kpi-grid,
+      .states-grid,
+      .actions,
+      .actions.three,
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+      .title { font-size: 30px; }
+      .container { width: min(100% - 20px, 1360px); }
+      .hero { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <h1 class="title">实验三：LR(0) 项目集规范族可视化平台</h1>
+      <p class="hero-sub">Compiler Design Lab 3 · 输入文法规则，自动完成增广文法、Closure、Goto、项目集规范族、冲突检测与实验二 Token 串联展示。</p>
+      <div class="badge-row">
+        <span class="badge">增广文法</span>
+        <span class="badge">Closure 闭包</span>
+        <span class="badge">Goto 转移</span>
+        <span class="badge">Kernel Items</span>
+        <span class="badge">LR(0) 冲突检测</span>
+        <span class="badge">Scanner 串联</span>
+      </div>
+    </header>
+
+    <div class="main-tabs">
+      <button class="main-tab active" data-module="lr0" type="button">LR(0) 项目集构造</button>
+      <button class="main-tab" data-module="pipeline" type="button">实验 1/2/3 串联展示</button>
+      <button class="main-tab" data-module="report" type="button">报告亮点说明</button>
+    </div>
+
+    <section id="module-lr0" class="module active">
+      <div class="layout">
+        <section class="card">
+          <h2>文法输入</h2>
+          <p class="sub">支持扩展巴科斯范式写法：每行一个产生式，候选式用 | 分隔，符号之间建议用空格隔开。</p>
+
+          <textarea id="grammarInput" class="input code-area" spellcheck="false"></textarea>
+
+          <div class="actions three">
+            <button class="btn secondary" type="button" onclick="loadDefaultGrammar()">加载表达式文法</button>
+            <button class="btn" type="button" onclick="buildLR0()">生成 LR(0) 规范族</button>
+            <button class="btn danger" type="button" onclick="clearLR0()">清空结果</button>
+          </div>
+
+          <div class="notice">
+            输入示例：E -&gt; E + T | T，T -&gt; T * F | F，F -&gt; ( E ) | id | num。程序会自动添加新的开始产生式 E' -&gt; E。
+          </div>
+
+          <div class="terminal small" id="grammarTerminal">$ 等待输入文法
+$ 点击“生成 LR(0) 规范族”开始实验三</div>
+        </section>
+
+        <section class="card">
+          <h2>运行结果概览</h2>
+          <p class="sub">显示增广文法、状态数量、转移数量和冲突检测结果。</p>
+
+          <div class="kpi-grid">
+            <div class="kpi"><strong>产生式数</strong><span id="kpiProductions">0</span></div>
+            <div class="kpi"><strong>状态数</strong><span id="kpiStates">0</span></div>
+            <div class="kpi"><strong>转移数</strong><span id="kpiTransitions">0</span></div>
+            <div class="kpi"><strong>冲突数</strong><span id="kpiConflicts">0</span></div>
+          </div>
+
+          <div class="mini-actions">
+            <button class="mini-btn active" data-view="states" type="button">项目集</button>
+            <button class="mini-btn" data-view="table" type="button">Goto 表</button>
+            <button class="mini-btn" data-view="graph" type="button">状态图</button>
+            <button class="mini-btn" data-view="json" type="button">JSON</button>
+          </div>
+
+          <div id="resultViewStates" class="result-view">
+            <div id="statesOutput" class="states-grid"></div>
+          </div>
+
+          <div id="resultViewTable" class="result-view" style="display:none;">
+            <div id="gotoTable" class="table-scroll"></div>
+          </div>
+
+          <div id="resultViewGraph" class="result-view" style="display:none;">
+            <div id="graphOutput" class="graph-wrap"></div>
+          </div>
+
+          <div id="resultViewJson" class="result-view" style="display:none;">
+            <div id="jsonOutput" class="terminal"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="module-pipeline" class="module">
+      <div class="layout equal">
+        <section class="card">
+          <h2>实验二 Scanner 输入</h2>
+          <p class="sub">输入表达式源程序，模拟实验二 scanner 将变量名归约为 id，将数字归约为 num，并保留 +、*、括号等终结符。</p>
+
+          <textarea id="sourceInput" class="input code-area" spellcheck="false"></textarea>
+
+          <div class="actions three">
+            <button class="btn secondary" type="button" onclick="loadSourceExample()">加载源程序样例</button>
+            <button class="btn" type="button" onclick="scanSource()">生成 Token 序列</button>
+            <button class="btn danger" type="button" onclick="clearPipeline()">清空</button>
+          </div>
+
+          <div class="notice success">
+            串联逻辑：test.src 字符流 → Scanner 输出 token.txt → token 终结符与 grammar.txt 中的 id、num、+、*、(、) 对接。
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Token 输出与语法输入对接</h2>
+          <p class="sub">该区域可直接作为报告中“完成实验 1 和 2 的串联，按实验二文法要求”的展示截图。</p>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>行号</th>
+                  <th>源程序</th>
+                  <th>Token 序列</th>
+                  <th>是否符合文法终结符</th>
+                </tr>
+              </thead>
+              <tbody id="pipelineTable"></tbody>
+            </table>
+          </div>
+
+          <h2 style="margin-top:18px;font-size:20px;">token.txt 形式</h2>
+          <div class="terminal" id="tokenOutput">$ 暂无 Token 输出</div>
+        </section>
+      </div>
+    </section>
+
+    <section id="module-report" class="module">
+      <section class="card">
+        <h2>实验三报告亮点写法</h2>
+        <p class="sub">下面内容可以直接用于实验报告的“系统设计”“实验结果分析”“选做部分说明”。</p>
+
+        <div class="states-grid">
+          <div class="state-card">
+            <div class="state-head"><span class="state-id">模块化设计</span><span class="state-tag">工程化</span></div>
+            <div class="state-body mono">本实验采用文法输入、项目集构造、状态转移展示、冲突检测和 Token 串联展示等模块化设计，使语法分析实验不再停留在静态输出，而是形成可交互的编译器前端展示平台。</div>
+          </div>
+
+          <div class="state-card">
+            <div class="state-head"><span class="state-id">LR(0) 核心算法</span><span class="state-tag">必做</span></div>
+            <div class="state-body mono">程序自动读取 EBNF 风格文法，完成文法增广，并从初始项目 E' -> ·E 出发，递归计算 Closure 闭包，再通过 Goto 函数生成项目集规范族。</div>
+          </div>
+
+          <div class="state-card">
+            <div class="state-head"><span class="state-id">冲突检测</span><span class="state-tag">分析</span></div>
+            <div class="state-body mono">系统会检测每个状态中是否同时存在移进项目和归约项目，或是否存在多个归约项目，从而判断文法是否属于严格 LR(0) 文法，并为后续 SLR(1) 分析表生成提供依据。</div>
+          </div>
+
+          <div class="state-card">
+            <div class="state-head"><span class="state-id">实验串联</span><span class="state-tag">选做</span></div>
+            <div class="state-body mono">在选做部分中，Scanner 将源程序字符流转换为 token 序列，具体变量归约为 id，数字归约为 num，使实验二输出能够与实验三文法终结符集合对接。</div>
+          </div>
+        </div>
+
+        <div class="notice">
+          建议截图顺序：页面首页 → 输入文法 → 生成项目集 I0 → Goto 表 → 状态图 → 冲突检测 JSON → Scanner 串联 token 输出。
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <script>
+    let lastResult = null;
+
+    const DEFAULT_GRAMMAR = `E -> E + T | T
+T -> T * F | F
+F -> ( E ) | id | num`;
+
+    const DEFAULT_SOURCE = `x + 3 * y
+(a + b) * 42
+sum + count * (value + 100)
+total * (price + tax)`;
+
+    document.getElementById("grammarInput").value = DEFAULT_GRAMMAR;
+    document.getElementById("sourceInput").value = DEFAULT_SOURCE;
+
+    document.querySelectorAll(".main-tab").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.module;
+        document.querySelectorAll(".main-tab").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        document.querySelectorAll(".module").forEach((m) => m.classList.remove("active"));
+        document.getElementById(`module-${target}`).classList.add("active");
+      });
+    });
+
+    document.querySelectorAll(".mini-btn[data-view]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const view = btn.dataset.view;
+        document.querySelectorAll(".mini-btn[data-view]").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        document.querySelectorAll(".result-view").forEach((v) => v.style.display = "none");
+        document.getElementById(`resultView${capitalize(view)}`).style.display = "block";
+      });
+    });
+
+    function capitalize(s) {
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
+    function loadDefaultGrammar() {
+      document.getElementById("grammarInput").value = DEFAULT_GRAMMAR;
+      document.getElementById("grammarTerminal").textContent = "$ 已加载默认表达式文法";
+    }
+
+    function clearLR0() {
+      lastResult = null;
+      document.getElementById("statesOutput").innerHTML = "";
+      document.getElementById("gotoTable").innerHTML = "";
+      document.getElementById("graphOutput").innerHTML = "";
+      document.getElementById("jsonOutput").textContent = "";
+      setKpis(0, 0, 0, 0);
+      document.getElementById("grammarTerminal").textContent = "$ 已清空 LR(0) 结果";
+    }
+
+    function parseGrammar(raw) {
+      const lines = raw.split(/\n+/).map(x => x.trim()).filter(x => x && !x.startsWith("#"));
+      if (!lines.length) throw new Error("文法不能为空");
+
+      const productions = [];
+      let startSymbol = null;
+
+      for (const line of lines) {
+        const idx = line.indexOf("->");
+        if (idx === -1) throw new Error(`产生式缺少 -> ：${line}`);
+
+        const left = line.slice(0, idx).trim();
+        const rightPart = line.slice(idx + 2).trim();
+        if (!left || !rightPart) throw new Error(`产生式不完整：${line}`);
+
+        if (!startSymbol) startSymbol = left;
+        const alternatives = rightPart.split("|").map(x => x.trim()).filter(Boolean);
+        for (const alt of alternatives) {
+          productions.push({ left, right: alt.split(/\s+/).filter(Boolean) });
+        }
+      }
+
+      const augmentedStart = startSymbol + "'";
+      const augmented = [{ left: augmentedStart, right: [startSymbol] }, ...productions];
+      return { startSymbol, augmentedStart, productions: augmented };
+    }
+
+    function itemKey(item) {
+      return `${item.productionId}@${item.dot}`;
+    }
+
+    function itemText(grammar, item) {
+      const p = grammar.productions[item.productionId];
+      const parts = [];
+      for (let i = 0; i < p.right.length; i++) {
+        if (i === item.dot) parts.push("·");
+        parts.push(p.right[i]);
+      }
+      if (item.dot === p.right.length) parts.push("·");
+      return `${p.left} -> ${parts.join(" ")}`;
+    }
+
+    function itemSetKey(items) {
+      return items.map(itemKey).sort().join("|");
+    }
+
+    function getNonterminals(grammar) {
+      return new Set(grammar.productions.map(p => p.left));
+    }
+
+    function getSymbols(grammar) {
+      const symbols = [];
+      const seen = new Set();
+      for (const p of grammar.productions) {
+        for (const x of [p.left, ...p.right]) {
+          if (!seen.has(x)) {
+            seen.add(x);
+            symbols.push(x);
+          }
+        }
+      }
+      return symbols;
+    }
+
+    function closure(grammar, items) {
+      const nonterminals = getNonterminals(grammar);
+      const result = [...items];
+      const seen = new Set(result.map(itemKey));
+      let changed = true;
+
+      while (changed) {
+        changed = false;
+        for (const item of [...result]) {
+          const p = grammar.productions[item.productionId];
+          if (item.dot >= p.right.length) continue;
+          const symbol = p.right[item.dot];
+          if (!nonterminals.has(symbol)) continue;
+
+          grammar.productions.forEach((prod, id) => {
+            if (prod.left === symbol) {
+              const newItem = { productionId: id, dot: 0 };
+              const key = itemKey(newItem);
+              if (!seen.has(key)) {
+                seen.add(key);
+                result.push(newItem);
+                changed = true;
+              }
+            }
+          });
+        }
+      }
+      return result;
+    }
+
+    function gotoSet(grammar, items, symbol) {
+      const moved = [];
+      for (const item of items) {
+        const p = grammar.productions[item.productionId];
+        if (item.dot < p.right.length && p.right[item.dot] === symbol) {
+          moved.push({ productionId: item.productionId, dot: item.dot + 1 });
+        }
+      }
+      if (!moved.length) return [];
+      return closure(grammar, moved);
+    }
+
+    function buildCollection(grammar) {
+      const states = [];
+      const transitions = [];
+      const symbols = getSymbols(grammar);
+      const initial = closure(grammar, [{ productionId: 0, dot: 0 }]);
+      states.push(initial);
+
+      let cursor = 0;
+      while (cursor < states.length) {
+        const current = states[cursor];
+        for (const symbol of symbols) {
+          const next = gotoSet(grammar, current, symbol);
+          if (!next.length) continue;
+
+          const key = itemSetKey(next);
+          let to = states.findIndex(s => itemSetKey(s) === key);
+          if (to === -1) {
+            to = states.length;
+            states.push(next);
+          }
+          transitions.push({ from: cursor, symbol, to });
+        }
+        cursor++;
+      }
+      return { states, transitions };
+    }
+
+    function getKernelItems(state) {
+      return state.filter(item => item.productionId === 0 || item.dot > 0);
+    }
+
+    function detectConflicts(grammar, states) {
+      const conflicts = [];
+      states.forEach((state, index) => {
+        let reduceItems = 0;
+        let shiftItems = 0;
+        for (const item of state) {
+          const p = grammar.productions[item.productionId];
+          if (item.dot === p.right.length) reduceItems++;
+          else shiftItems++;
+        }
+        if (reduceItems >= 2) conflicts.push({ state: index, type: "Reduce-Reduce", message: `I${index} 存在归约-归约冲突` });
+        if (reduceItems >= 1 && shiftItems >= 1) conflicts.push({ state: index, type: "Shift-Reduce", message: `I${index} 存在移进-归约冲突` });
+      });
+      return conflicts;
+    }
+
+    function buildLR0() {
+      try {
+        const grammar = parseGrammar(document.getElementById("grammarInput").value);
+        const collection = buildCollection(grammar);
+        const conflicts = detectConflicts(grammar, collection.states);
+        lastResult = { grammar, ...collection, conflicts };
+        renderAll(lastResult);
+        document.getElementById("grammarTerminal").textContent = `$ 文法读取成功\n$ 自动增广: ${grammar.augmentedStart} -> ${grammar.startSymbol}\n$ 生成状态数: ${collection.states.length}\n$ 生成转移数: ${collection.transitions.length}\n$ 冲突数量: ${conflicts.length}`;
+      } catch (err) {
+        document.getElementById("grammarTerminal").textContent = `$ 构造失败\n$ ${err.message}`;
+      }
+    }
+
+    function renderAll(result) {
+      setKpis(result.grammar.productions.length, result.states.length, result.transitions.length, result.conflicts.length);
+      renderStates(result);
+      renderGotoTable(result);
+      renderGraph(result);
+      renderJson(result);
+    }
+
+    function setKpis(p, s, t, c) {
+      document.getElementById("kpiProductions").textContent = p;
+      document.getElementById("kpiStates").textContent = s;
+      document.getElementById("kpiTransitions").textContent = t;
+      document.getElementById("kpiConflicts").textContent = c;
+    }
+
+    function renderStates(result) {
+      const wrap = document.getElementById("statesOutput");
+      wrap.innerHTML = "";
+      const conflictMap = new Map();
+      for (const c of result.conflicts) {
+        if (!conflictMap.has(c.state)) conflictMap.set(c.state, []);
+        conflictMap.get(c.state).push(c.type);
+      }
+
+      result.states.forEach((state, index) => {
+        const kernel = getKernelItems(state);
+        const gotos = result.transitions.filter(t => t.from === index);
+        const card = document.createElement("div");
+        card.className = "state-card";
+        const tag = conflictMap.has(index) ? "Conflict" : "Normal";
+        card.innerHTML = `
+          <div class="state-head">
+            <span class="state-id">I${index}</span>
+            <span class="state-tag">${tag}</span>
+          </div>
+          <div class="state-body">
+            <h3>Kernel Items</h3>
+            <div class="mono">${kernel.map(item => `<div class="kernel-line">${escapeHtml(itemText(result.grammar, item))}</div>`).join("") || "(无)"}</div>
+            <h3>Closure Items</h3>
+            <div class="mono">${state.map(item => `<div class="closure-line">${escapeHtml(itemText(result.grammar, item))}</div>`).join("")}</div>
+            <h3>Goto</h3>
+            <div class="mono">${gotos.map(t => `<div class="goto-line">Goto(I${t.from}, ${escapeHtml(t.symbol)}) = I${t.to}</div>`).join("") || "None"}</div>
+            ${conflictMap.has(index) ? `<h3>Conflict</h3><div class="mono">${conflictMap.get(index).map(x => `<div class="conflict-line">${x}</div>`).join("")}</div>` : ""}
+          </div>
+        `;
+        wrap.appendChild(card);
+      });
+    }
+
+    function renderGotoTable(result) {
+      const nonterminals = getNonterminals(result.grammar);
+      const terminalSet = new Set();
+      const nonterminalSet = new Set();
+      for (const p of result.grammar.productions) {
+        for (const x of p.right) {
+          if (nonterminals.has(x)) nonterminalSet.add(x);
+          else terminalSet.add(x);
+        }
+      }
+      const symbols = [...nonterminalSet, ...terminalSet];
+      let html = "<table><thead><tr><th>状态</th>";
+      symbols.forEach(s => html += `<th>${escapeHtml(s)}</th>`);
+      html += "</tr></thead><tbody>";
+      result.states.forEach((_, i) => {
+        html += `<tr><td>I${i}</td>`;
+        for (const s of symbols) {
+          const t = result.transitions.find(x => x.from === i && x.symbol === s);
+          html += `<td>${t ? "I" + t.to : ""}</td>`;
+        }
+        html += "</tr>";
+      });
+      html += "</tbody></table>";
+      document.getElementById("gotoTable").innerHTML = html;
+    }
+
+    function renderGraph(result) {
+      const count = result.states.length;
+      const cols = Math.min(5, Math.max(1, Math.ceil(Math.sqrt(count))));
+      const nodeW = 132;
+      const nodeH = 54;
+      const gapX = 172;
+      const gapY = 112;
+      const margin = 46;
+      const positions = [];
+      for (let i = 0; i < count; i++) {
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        positions[i] = { x: margin + col * gapX, y: margin + row * gapY };
+      }
+      const rows = Math.ceil(count / cols);
+      const width = margin * 2 + cols * gapX;
+      const height = margin * 2 + rows * gapY;
+
+      let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="rgba(24,36,58,0.62)" />
+          </marker>
+        </defs>`;
+
+      for (const t of result.transitions) {
+        const a = positions[t.from];
+        const b = positions[t.to];
+        const x1 = a.x + nodeW;
+        const y1 = a.y + nodeH / 2;
+        const x2 = b.x;
+        const y2 = b.y + nodeH / 2;
+        const same = t.from === t.to;
+        if (same) {
+          svg += `<path class="edge-line" d="M ${a.x + nodeW / 2} ${a.y} C ${a.x + 10} ${a.y - 40}, ${a.x + nodeW - 10} ${a.y - 40}, ${a.x + nodeW / 2} ${a.y}" />`;
+          svg += `<text class="edge-label" x="${a.x + nodeW / 2 - 6}" y="${a.y - 30}">${escapeHtml(t.symbol)}</text>`;
+        } else {
+          const midX = (x1 + x2) / 2;
+          const midY = (y1 + y2) / 2;
+          svg += `<path class="edge-line" d="M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}" />`;
+          svg += `<text class="edge-label" x="${midX}" y="${midY - 7}">${escapeHtml(t.symbol)}</text>`;
+        }
+      }
+
+      result.states.forEach((state, i) => {
+        const p = positions[i];
+        const hasConflict = result.conflicts.some(c => c.state === i);
+        svg += `<rect class="node-rect" x="${p.x}" y="${p.y}" width="${nodeW}" height="${nodeH}" rx="12" />`;
+        svg += `<text x="${p.x + nodeW / 2}" y="${p.y + 23}" text-anchor="middle" font-size="16" font-weight="900">I${i}</text>`;
+        svg += `<text x="${p.x + nodeW / 2}" y="${p.y + 41}" text-anchor="middle" font-size="12" fill="${hasConflict ? '#e04f5f' : '#0d7d70'}">${hasConflict ? 'Conflict' : state.length + ' items'}</text>`;
+      });
+
+      svg += "</svg>";
+      document.getElementById("graphOutput").innerHTML = svg;
+    }
+
+    function renderJson(result) {
+      const data = {
+        augmentedGrammar: result.grammar.productions.map((p, i) => ({ id: i, left: p.left, right: p.right })),
+        states: result.states.map((state, i) => ({
+          id: `I${i}`,
+          kernel: getKernelItems(state).map(item => itemText(result.grammar, item)),
+          closure: state.map(item => itemText(result.grammar, item)),
+          goto: result.transitions.filter(t => t.from === i).reduce((obj, t) => {
+            obj[t.symbol] = `I${t.to}`;
+            return obj;
+          }, {})
+        })),
+        conflicts: result.conflicts
+      };
+      document.getElementById("jsonOutput").textContent = JSON.stringify(data, null, 2);
+    }
+
+    function loadSourceExample() {
+      document.getElementById("sourceInput").value = DEFAULT_SOURCE;
+    }
+
+    function clearPipeline() {
+      document.getElementById("sourceInput").value = "";
+      document.getElementById("pipelineTable").innerHTML = "";
+      document.getElementById("tokenOutput").textContent = "$ 暂无 Token 输出";
+    }
+
+    function scanSource() {
+      const source = document.getElementById("sourceInput").value;
+      const lines = source.split(/\n/);
+      const tbody = document.getElementById("pipelineTable");
+      const tokenOut = [];
+      tbody.innerHTML = "";
+      const allowed = new Set(["id", "num", "+", "*", "(", ")"]);
+
+      lines.forEach((line, index) => {
+        if (!line.trim()) return;
+        const tokens = scanExpressionLine(line);
+        tokenOut.push(tokens.join(" "));
+        const ok = tokens.every(t => allowed.has(t));
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td class="mono">${escapeHtml(line)}</td>
+          <td class="mono">${escapeHtml(tokens.join(" "))}</td>
+          <td>${ok ? "是" : "否"}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("tokenOutput").textContent = tokenOut.length ? tokenOut.join("\n") : "$ 暂无 Token 输出";
+    }
+
+    function scanExpressionLine(line) {
+      const tokens = [];
+      let i = 0;
+      while (i < line.length) {
+        const ch = line[i];
+        if (/\s/.test(ch)) { i++; continue; }
+        if (/[a-zA-Z_]/.test(ch)) {
+          i++;
+          while (i < line.length && /[a-zA-Z0-9_]/.test(line[i])) i++;
+          tokens.push("id");
+          continue;
+        }
+        if (/[0-9]/.test(ch)) {
+          i++;
+          while (i < line.length && /[0-9]/.test(line[i])) i++;
+          tokens.push("num");
+          continue;
+        }
+        if (["+", "*", "(", ")"].includes(ch)) {
+          tokens.push(ch);
+          i++;
+          continue;
+        }
+        tokens.push("ERROR(" + ch + ")");
+        i++;
+      }
+      return tokens;
+    }
+
+    function escapeHtml(raw) {
+      return String(raw)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    buildLR0();
+    scanSource();
+  </script>
+</body>
+</html>

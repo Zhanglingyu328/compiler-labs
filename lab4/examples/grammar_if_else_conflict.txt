@@ -1,0 +1,5 @@
+# 用于测试冲突检测的 dangling else 文法示例
+%start S
+
+S -> if E then S | if E then S else S | other
+E -> true

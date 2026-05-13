@@ -1,0 +1,16 @@
+%option noyywrap
+%{
+#include "expr.tab.h"
+%}
+
+%%
+[ \t\r\n]+      ;
+"id"           { return ID; }
+[a-zA-Z_][a-zA-Z0-9_]* { return ID; }
+"+"            { return '+'; }
+"*"            { return '*'; }
+"("            { return '('; }
+")"            { return ')'; }
+.              { return yytext[0]; }
+%%
+

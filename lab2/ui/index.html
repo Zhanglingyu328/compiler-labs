@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>类 C 语言词法分析器可视化系统</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <header>
+            <h1>类 C 语言词法分析器可视化系统</h1>
+            <p>Compiler Design Lab 2 - Scanner Based on DFA</p>
+        </header>
+
+        <main>
+            <section class="panel">
+                <h2>源代码输入</h2>
+                <textarea id="codeInput"></textarea>
+
+                <div class="buttons">
+                    <button onclick="loadExample()">加载示例</button>
+                    <button onclick="runScanner()">开始词法分析</button>
+                    <button onclick="clearAll()">清空</button>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>Token 输出</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>Token 类型</th>
+                            <th>属性值</th>
+                            <th>行号</th>
+                            <th>列号</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tokenTable"></tbody>
+                </table>
+            </section>
+        </main>
+
+        <section class="bottom">
+            <div class="panel">
+                <h2>错误信息</h2>
+                <pre id="errorOutput"></pre>
+            </div>
+
+            <div class="panel">
+                <h2>Token 统计</h2>
+                <pre id="statOutput"></pre>
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

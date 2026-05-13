@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DFA 实验平台</title>
+  <style>
+    :root {
+      --bg: #eef4ff;
+      --card: rgba(255, 255, 255, 0.9);
+      --text: #183153;
+      --muted: #58708f;
+      --primary: #315bea;
+      --primary-2: #6f8eff;
+      --accent: #18b6a5;
+      --border: rgba(49, 91, 234, 0.14);
+      --shadow: 0 18px 42px rgba(31, 63, 130, 0.13);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(111, 142, 255, 0.22), transparent 28%),
+        radial-gradient(circle at 100% 20%, rgba(24, 182, 165, 0.13), transparent 18%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+    }
+
+    .container {
+      width: min(1200px, calc(100% - 32px));
+      margin: 24px auto 40px;
+    }
+
+    .title {
+      margin: 0 0 14px;
+      font-size: 36px;
+      font-weight: 800;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 22px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .card h2 { margin: 0 0 12px; }
+    .sub {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .tab-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 11px 16px;
+      background: rgba(49, 91, 234, 0.08);
+      color: var(--primary);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(49, 91, 234, 0.22);
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .tuple-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .tuple-item {
+      background: rgba(49, 91, 234, 0.05);
+      border: 1px solid rgba(49, 91, 234, 0.1);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .tuple-item strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--primary);
+    }
+
+    .mono {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    .input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid rgba(49, 91, 234, 0.2);
+      border-radius: 10px;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    textarea.input {
+      resize: vertical;
+      min-height: 110px;
+      font-family: Consolas, "Courier New", monospace;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, #4b61ea 0%, #7a90ff 100%);
+      box-shadow: 0 10px 24px rgba(49, 91, 234, 0.2);
+    }
+
+    .btn.secondary {
+      background: linear-gradient(135deg, #49b3a6 0%, #7ccfc3 100%);
+      box-shadow: 0 10px 24px rgba(24, 182, 165, 0.18);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .terminal {
+      margin-top: 14px;
+      background: #181c20;
+      color: #b6e1a3;
+      border-radius: 14px;
+      padding: 14px;
+      min-height: 280px;
+      overflow: auto;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .table-wrap {
+      display: none;
+      margin-top: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(49, 91, 234, 0.1);
+    }
+
+    th,
+    td {
+      text-align: center;
+      padding: 10px;
+      border-bottom: 1px solid rgba(49, 91, 234, 0.08);
+    }
+
+    th {
+      color: var(--primary);
+      font-weight: 800;
+      background: rgba(49, 91, 234, 0.08);
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .msg {
+      margin-top: 8px;
+      color: #0d7d70;
+      font-size: 13px;
+      min-height: 20px;
+    }
+
+    @media (max-width: 980px) {
+      .layout,
+      .tuple-grid,
+      .actions,
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+      .title { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">DFA 实验平台</h1>
+
+    <div class="layout">
+      <section class="card">
+        <h2>实验案例</h2>
+        <p class="sub">可切换内置案例，或填写自定义五元组并立即启用。</p>
+
+        <div class="tabs">
+          <button class="tab-btn active" data-target="basic">以 ab 结尾</button>
+          <button class="tab-btn" data-target="to">包含 to</button>
+          <button class="tab-btn" data-target="custom">自定义 DFA</button>
+        </div>
+
+        <div id="panel-basic" class="panel active">
+          <div class="tuple-grid">
+            <div class="tuple-item"><strong>Q</strong><div class="mono">{ q0, q1, q2 }</div></div>
+            <div class="tuple-item"><strong>Sigma</strong><div class="mono">{ a, b }</div></div>
+            <div class="tuple-item"><strong>q0</strong><div class="mono">q0</div></div>
+            <div class="tuple-item"><strong>F</strong><div class="mono">{ q2 }</div></div>
+          </div>
+          <div class="tuple-item" style="margin-top: 12px;">
+            <strong>delta</strong>
+            <div class="mono">q0 a q1
+q0 b q0
+q1 a q1
+q1 b q2
+q2 a q1
+q2 b q0</div>
+          </div>
+        </div>
+
+        <div id="panel-to" class="panel">
+          <div class="tuple-grid">
+            <div class="tuple-item"><strong>Q</strong><div class="mono">{ q0, q1, q2 }</div></div>
+            <div class="tuple-item"><strong>Sigma</strong><div class="mono">{ t, o, a, b }</div></div>
+            <div class="tuple-item"><strong>q0</strong><div class="mono">q0</div></div>
+            <div class="tuple-item"><strong>F</strong><div class="mono">{ q2 }</div></div>
+          </div>
+          <div class="tuple-item" style="margin-top: 12px;">
+            <strong>delta</strong>
+            <div class="mono">q0 t q1
+q0 o q0
+q0 a q0
+q0 b q0
+q1 o q2
+q1 t q1
+q1 a q0
+q1 b q0
+q2 t q2
+q2 o q2
+q2 a q2
+q2 b q2</div>
+          </div>
+        </div>
+
+        <div id="panel-custom" class="panel">
+          <div class="tuple-grid">
+            <div class="tuple-item">
+              <strong>Q（空格分隔）</strong>
+              <input id="custom-states" class="input" type="text" placeholder="q0 q1 q2" autocomplete="off" />
+            </div>
+            <div class="tuple-item">
+              <strong>Sigma（空格分隔）</strong>
+              <input id="custom-alphabet" class="input" type="text" placeholder="a b" autocomplete="off" />
+            </div>
+            <div class="tuple-item">
+              <strong>q0</strong>
+              <input id="custom-start" class="input" type="text" placeholder="q0" autocomplete="off" />
+            </div>
+            <div class="tuple-item">
+              <strong>F（空格分隔）</strong>
+              <input id="custom-accept" class="input" type="text" placeholder="q2" autocomplete="off" />
+            </div>
+          </div>
+
+          <div class="tuple-item" style="margin-top: 12px;">
+            <strong>delta（每行: 当前状态 输入符号 目标状态）</strong>
+            <textarea id="custom-trans" class="input" placeholder="q0 a q1
+q0 b q0
+q1 a q1
+q1 b q2
+q2 a q1
+q2 b q0"></textarea>
+          </div>
+
+          <div class="actions">
+            <button class="btn secondary" id="btn-save-custom" type="button">保存并启用</button>
+            <button class="btn" id="btn-fill-template" type="button">按Q和Sigma生成模板</button>
+          </div>
+          <div id="custom-msg" class="msg"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>运行区</h2>
+        <p class="sub">输入字符串判定，枚举长度小于等于 N 的合法字符串，或显示当前转移表。</p>
+
+        <div class="row">
+          <input id="input-str" class="input" type="text" placeholder="输入待判定字符串" autocomplete="off" />
+          <input id="input-n" class="input" type="number" min="1" max="8" value="4" />
+        </div>
+
+        <div class="actions">
+          <button class="btn" id="btn-judge" type="button">判定输入字符串</button>
+          <button class="btn secondary" id="btn-enum" type="button">输出合法字符串</button>
+          <button class="btn" id="btn-check" type="button">检查 DFA 合法性</button>
+          <button class="btn secondary" id="btn-table" type="button">显示状态转移表</button>
+        </div>
+
+        <div class="terminal" id="terminal">$ 当前案例: 以 ab 结尾
+$ 可执行: 判定 / 枚举 / 检查 / 显示转移表</div>
+        <div class="table-wrap" id="table-wrap"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const builtinDfa = {
+      basic: {
+        alphabet: ["a", "b"],
+        states: ["q0", "q1", "q2"],
+        start: "q0",
+        accept: ["q2"],
+        transitions: {
+          "q0,a": "q1", "q0,b": "q0",
+          "q1,a": "q1", "q1,b": "q2",
+          "q2,a": "q1", "q2,b": "q0"
+        }
+      },
+      to: {
+        alphabet: ["t", "o", "a", "b"],
+        states: ["q0", "q1", "q2"],
+        start: "q0",
+        accept: ["q2"],
+        transitions: {
+          "q0,t": "q1", "q0,o": "q0", "q0,a": "q0", "q0,b": "q0",
+          "q1,o": "q2", "q1,t": "q1", "q1,a": "q0", "q1,b": "q0",
+          "q2,t": "q2", "q2,o": "q2", "q2,a": "q2", "q2,b": "q2"
+        }
+      }
+    };
+
+    let customDfa = null;
+    let currentKey = "basic";
+
+    const terminal = document.getElementById("terminal");
+    const tableWrap = document.getElementById("table-wrap");
+    const panels = {
+      basic: document.getElementById("panel-basic"),
+      to: document.getElementById("panel-to"),
+      custom: document.getElementById("panel-custom")
+    };
+
+    function getCurrentDfa() {
+      if (currentKey === "custom") {
+        return customDfa;
+      }
+      return builtinDfa[currentKey];
+    }
+
+    function setTerminal(text) {
+      terminal.textContent = text;
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function parseSpaceList(raw) {
+      return raw.trim().split(/\s+/).filter(Boolean);
+    }
+
+    function validateDfa(dfa) {
+      if (!dfa) return "未加载 DFA";
+      if (!dfa.alphabet.length) return "字符集不能为空";
+      if (!dfa.states.length) return "状态集不能为空";
+      if (!dfa.start) return "开始状态不能为空";
+      if (!dfa.states.includes(dfa.start)) return "开始状态不在状态集中";
+      if (!dfa.accept.length) return "接受状态集不能为空";
+
+      for (const f of dfa.accept) {
+        if (!dfa.states.includes(f)) {
+          return `接受状态 ${f} 不在状态集中`;
+        }
+      }
+
+      for (const s of dfa.states) {
+        for (const c of dfa.alphabet) {
+          const key = `${s},${c}`;
+          const target = dfa.transitions[key];
+          if (!target) return `缺少转移 delta(${s}, ${c})`;
+          if (!dfa.states.includes(target)) {
+            return `转移目标状态 ${target} 不在状态集中`;
+          }
+        }
+      }
+
+      return "";
+    }
+
+    function runDfa(dfa, input, showProcess) {
+      let current = dfa.start;
+      const lines = [];
+      if (showProcess) {
+        lines.push(`$ 输入字符串: ${input}`);
+        lines.push(`$ 开始状态: ${current}`);
+      }
+
+      for (const ch of input) {
+        if (!dfa.alphabet.includes(ch)) {
+          lines.push(`$ 输入字符 ${ch} 不在字符集中`);
+          return { accepted: false, lines };
+        }
+        const key = `${current},${ch}`;
+        const next = dfa.transitions[key];
+        if (!next) {
+          lines.push(`$ 不存在转移 delta(${current}, ${ch})`);
+          return { accepted: false, lines };
+        }
+        if (showProcess) {
+          lines.push(`$ 读入 ${ch}: ${current} -> ${next}`);
+        }
+        current = next;
+      }
+
+      const accepted = dfa.accept.includes(current);
+      if (showProcess) {
+        lines.push(`$ 结束状态: ${current}`);
+        lines.push(accepted ? "$ 结果: 属于该 DFA 语言" : "$ 结果: 不属于该 DFA 语言");
+      }
+
+      return { accepted, lines };
+    }
+
+    function renderTable(dfa) {
+      let html = "<table><thead><tr><th>当前状态</th>";
+      for (const c of dfa.alphabet) {
+        html += `<th>输入 ${c}</th>`;
+      }
+      html += "</tr></thead><tbody>";
+      for (const s of dfa.states) {
+        html += `<tr><td>${s}</td>`;
+        for (const c of dfa.alphabet) {
+          const key = `${s},${c}`;
+          html += `<td>${dfa.transitions[key] || "-"}</td>`;
+        }
+        html += "</tr>";
+      }
+      html += "</tbody></table>";
+      tableWrap.innerHTML = html;
+      tableWrap.style.display = "block";
+    }
+
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.target;
+        currentKey = target;
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        Object.values(panels).forEach((p) => p.classList.remove("active"));
+        panels[target].classList.add("active");
+        tableWrap.style.display = "none";
+
+        if (target === "custom" && !customDfa) {
+          setTerminal("$ 当前案例: 自定义 DFA\n$ 请填写五元组和转移表，点击 保存并启用");
+        } else {
+          setTerminal(`$ 当前案例: ${target === "basic" ? "以 ab 结尾" : target === "to" ? "包含 to" : "自定义 DFA"}\n$ 可执行: 判定 / 枚举 / 检查 / 显示转移表`);
+        }
+      });
+    });
+
+    document.getElementById("btn-fill-template").addEventListener("click", () => {
+      const states = parseSpaceList(document.getElementById("custom-states").value);
+      const alphabet = parseSpaceList(document.getElementById("custom-alphabet").value);
+      if (!states.length || !alphabet.length) {
+        document.getElementById("custom-msg").textContent = "请先填写状态集和字符集";
+        return;
+      }
+      const lines = [];
+      for (const s of states) {
+        for (const c of alphabet) {
+          lines.push(`${s} ${c} ${s}`);
+        }
+      }
+      document.getElementById("custom-trans").value = lines.join("\n");
+      document.getElementById("custom-msg").textContent = "模板已生成，请按需要修改目标状态";
+    });
+
+    document.getElementById("btn-save-custom").addEventListener("click", () => {
+      const states = parseSpaceList(document.getElementById("custom-states").value);
+      const alphabet = parseSpaceList(document.getElementById("custom-alphabet").value);
+      const start = document.getElementById("custom-start").value.trim();
+      const accept = parseSpaceList(document.getElementById("custom-accept").value);
+      const lines = document.getElementById("custom-trans").value.split("\n");
+
+      const transitions = {};
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/).filter(Boolean);
+        if (!parts.length) continue;
+        if (parts.length !== 3) {
+          document.getElementById("custom-msg").textContent = "转移表每行必须是: 状态 字符 目标状态";
+          return;
+        }
+        const from = parts[0];
+        const symbol = parts[1];
+        const to = parts[2];
+        transitions[`${from},${symbol}`] = to;
+      }
+
+      const draft = { states, alphabet, start, accept, transitions };
+      const err = validateDfa(draft);
+      if (err) {
+        document.getElementById("custom-msg").textContent = `保存失败: ${err}`;
+        return;
+      }
+
+      customDfa = draft;
+      currentKey = "custom";
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelector('.tab-btn[data-target="custom"]').classList.add("active");
+      Object.values(panels).forEach((p) => p.classList.remove("active"));
+      panels.custom.classList.add("active");
+      tableWrap.style.display = "none";
+
+      document.getElementById("custom-msg").textContent = "保存成功，当前已启用自定义 DFA";
+      setTerminal("$ 自定义 DFA 已启用\n$ 可执行: 判定 / 枚举 / 检查 / 显示转移表");
+    });
+
+    document.getElementById("btn-check").addEventListener("click", () => {
+      const dfa = getCurrentDfa();
+      const err = validateDfa(dfa);
+      if (err) {
+        setTerminal(`$ DFA 检查失败\n$ ${err}`);
+      } else {
+        setTerminal("$ DFA 检查通过\n$ 开始状态合法\n$ 接受状态集合法\n$ 转移表完整");
+      }
+    });
+
+    document.getElementById("btn-judge").addEventListener("click", () => {
+      const dfa = getCurrentDfa();
+      if (!dfa) {
+        setTerminal("$ 当前是自定义模式，但还未保存自定义 DFA");
+        return;
+      }
+      const err = validateDfa(dfa);
+      if (err) {
+        setTerminal(`$ 当前 DFA 不合法\n$ ${err}`);
+        return;
+      }
+      const input = document.getElementById("input-str").value;
+      if (input.length === 0) {
+        setTerminal("$ 请输入待判定字符串");
+        return;
+      }
+      const result = runDfa(dfa, input, true);
+      setTerminal(result.lines.join("\n"));
+    });
+
+    document.getElementById("btn-enum").addEventListener("click", () => {
+      const dfa = getCurrentDfa();
+      if (!dfa) {
+        setTerminal("$ 当前是自定义模式，但还未保存自定义 DFA");
+        return;
+      }
+      const err = validateDfa(dfa);
+      if (err) {
+        setTerminal(`$ 当前 DFA 不合法\n$ ${err}`);
+        return;
+      }
+
+      const n = Number.parseInt(document.getElementById("input-n").value, 10);
+      if (Number.isNaN(n) || n < 1 || n > 8) {
+        setTerminal("$ 请输入 1 到 8 之间的最大长度 N");
+        return;
+      }
+
+      const result = [];
+      function dfs(str, state) {
+        if (str.length > n) return;
+        if (str.length > 0 && dfa.accept.includes(state)) result.push(str);
+        if (str.length === n) return;
+        for (const c of dfa.alphabet) {
+          const next = dfa.transitions[`${state},${c}`];
+          if (next) dfs(str + c, next);
+        }
+      }
+
+      dfs("", dfa.start);
+      const unique = Array.from(new Set(result));
+      unique.sort((a, b) => (a.length === b.length ? a.localeCompare(b) : a.length - b.length));
+
+      if (!unique.length) {
+        setTerminal(`$ 长度 <= ${n} 的合法字符串\n$ (无)`);
+      } else {
+        setTerminal(`$ 长度 <= ${n} 的合法字符串\n${unique.map((s) => `$ ${s}`).join("\n")}`);
+      }
+    });
+
+    document.getElementById("btn-table").addEventListener("click", () => {
+      const dfa = getCurrentDfa();
+      if (!dfa) {
+        setTerminal("$ 当前是自定义模式，但还未保存自定义 DFA");
+        return;
+      }
+      const err = validateDfa(dfa);
+      if (err) {
+        setTerminal(`$ 当前 DFA 不合法\n$ ${err}`);
+        return;
+      }
+      renderTable(dfa);
+      setTerminal("$ 已显示当前 DFA 的状态转移表");
+    });
+  </script>
+</body>
+</html>
