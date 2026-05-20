@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.10)
+project(lab5_semantic LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+include_directories(include)
+file(GLOB SRC_FILES src/*.cpp)
+add_executable(lab5_semantic ${SRC_FILES})

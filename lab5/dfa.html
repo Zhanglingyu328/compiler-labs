@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>实验五：SLR 引导的语义分析框架可视化平台</title>
+  <style>
+    :root {
+      --bg: #eef4ff;
+      --card: rgba(255, 255, 255, 0.94);
+      --text: #183153;
+      --muted: #58708f;
+      --primary: #315bea;
+      --primary-2: #6f8eff;
+      --accent: #18b6a5;
+      --danger: #e04f5f;
+      --warning: #f59e0b;
+      --border: rgba(49, 91, 234, 0.14);
+      --shadow: 0 18px 42px rgba(31, 63, 130, 0.13);
+      --terminal: #181c20;
+      --terminal-text: #b6e1a3;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(111, 142, 255, 0.22), transparent 28%),
+        radial-gradient(circle at 100% 20%, rgba(24, 182, 165, 0.13), transparent 18%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+      min-height: 100vh;
+    }
+
+    .container {
+      width: min(1320px, calc(100% - 32px));
+      margin: 24px auto 40px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(49, 91, 234, 0.96), rgba(86, 204, 242, 0.92));
+      border-radius: 26px;
+      color: white;
+      padding: 30px 34px;
+      box-shadow: 0 20px 45px rgba(49, 91, 234, 0.22);
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -80px;
+      top: -80px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.16);
+    }
+
+    .title {
+      margin: 0 0 8px;
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-sub {
+      margin: 0;
+      font-size: 16px;
+      opacity: 0.94;
+      line-height: 1.7;
+      position: relative;
+      z-index: 1;
+    }
+
+    .main-tabs, .mini-actions {
+      display: flex;
+      gap: 12px;
+      margin: 18px 0 22px;
+      flex-wrap: wrap;
+    }
+
+    .main-tab, .mini-btn, .btn {
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    .main-tab:hover, .mini-btn:hover, .btn:hover { transform: translateY(-1px); }
+
+    .main-tab, .mini-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 13px 22px;
+      background: rgba(49, 91, 234, 0.08);
+      color: var(--primary);
+      font-weight: 850;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .mini-btn {
+      padding: 9px 13px;
+      font-size: 13px;
+    }
+
+    .main-tab.active, .mini-btn.active {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+      color: white;
+      box-shadow: 0 8px 20px rgba(49, 91, 234, 0.22);
+    }
+
+    .module { display: none; }
+    .module.active { display: block; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .layout.wide-left { grid-template-columns: 0.8fr 1.2fr; }
+    .layout.wide-right { grid-template-columns: 1.15fr 0.85fr; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 24px;
+    }
+
+    .card h3 {
+      margin: 18px 0 10px;
+      font-size: 17px;
+      color: var(--primary);
+    }
+
+    .sub {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 12px 0 16px;
+    }
+
+    .kpi {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(49, 91, 234, 0.06);
+      border: 1px solid rgba(49, 91, 234, 0.11);
+    }
+
+    .kpi strong {
+      display: block;
+      color: var(--primary);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .kpi span {
+      font-size: 25px;
+      font-weight: 900;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 780;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, #4b61ea 0%, #7a90ff 100%);
+      box-shadow: 0 10px 24px rgba(49, 91, 234, 0.2);
+    }
+
+    .btn.secondary {
+      background: linear-gradient(135deg, #49b3a6 0%, #7ccfc3 100%);
+      box-shadow: 0 10px 24px rgba(24, 182, 165, 0.18);
+    }
+
+    .btn.danger {
+      background: linear-gradient(135deg, #e04f5f 0%, #ff7b88 100%);
+      box-shadow: 0 10px 24px rgba(224, 79, 95, 0.18);
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid rgba(49, 91, 234, 0.2);
+      border-radius: 12px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    .input:focus {
+      border-color: rgba(49, 91, 234, 0.55);
+      box-shadow: 0 0 0 4px rgba(49, 91, 234, 0.08);
+    }
+
+    textarea.input {
+      resize: vertical;
+      min-height: 140px;
+      font-family: Consolas, "Courier New", monospace;
+      line-height: 1.6;
+    }
+
+    .terminal {
+      margin-top: 14px;
+      background: var(--terminal);
+      color: var(--terminal-text);
+      border-radius: 14px;
+      padding: 14px;
+      min-height: 260px;
+      overflow: auto;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .terminal.small { min-height: 120px; max-height: 220px; }
+    .terminal.tall { min-height: 520px; }
+
+    .table-scroll {
+      overflow: auto;
+      max-height: 560px;
+      border-radius: 12px;
+      border: 1px solid rgba(49, 91, 234, 0.1);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th, td {
+      text-align: center;
+      padding: 10px;
+      border-bottom: 1px solid rgba(49, 91, 234, 0.08);
+      font-size: 14px;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--primary);
+      font-weight: 850;
+      background: rgba(49, 91, 234, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: rgba(49, 91, 234, 0.025); }
+
+    .notice {
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      background: rgba(245, 158, 11, 0.08);
+      color: #8a5b00;
+      line-height: 1.7;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .badge-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(24, 182, 165, 0.1);
+      color: #0d7d70;
+      border: 1px solid rgba(24, 182, 165, 0.2);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-weight: 750;
+      font-size: 13px;
+    }
+
+    .badge.danger {
+      color: var(--danger);
+      background: rgba(224, 79, 95, 0.1);
+      border-color: rgba(224, 79, 95, 0.2);
+    }
+
+    .badge.warn {
+      color: #8a5b00;
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+
+    .viewer-panel { display: none; }
+    .viewer-panel.active { display: block; }
+
+    .file-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+      max-height: 470px;
+      overflow: auto;
+    }
+
+    .file-btn {
+      border: 1px solid rgba(49, 91, 234, 0.13);
+      background: #fff;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 11px 12px;
+      text-align: left;
+      cursor: pointer;
+      font-weight: 750;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .file-btn.active {
+      border-color: rgba(49, 91, 234, 0.65);
+      box-shadow: 0 0 0 4px rgba(49, 91, 234, 0.08);
+      color: var(--primary);
+    }
+
+    .status-pass { color: #0d7d70; font-weight: 900; }
+    .status-error { color: var(--danger); font-weight: 900; }
+    .status-warn { color: #8a5b00; font-weight: 900; }
+
+    .img-wrap {
+      min-height: 360px;
+      background: #fff;
+      border: 1px dashed rgba(49, 91, 234, 0.24);
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      overflow: auto;
+      padding: 14px;
+    }
+
+    .img-wrap img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .steps li { margin-bottom: 10px; line-height: 1.7; }
+    code { background: rgba(49, 91, 234, 0.08); padding: 2px 5px; border-radius: 6px; }
+
+    @media (max-width: 980px) {
+      .layout, .layout.wide-left, .layout.wide-right, .kpi-grid, .actions, .row {
+        grid-template-columns: 1fr;
+      }
+      .title { font-size: 30px; }
+      .container { width: min(100% - 20px, 1320px); }
+      .hero { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <h1 class="title">实验五：SLR 引导的语义分析框架可视化平台</h1>
+      <p class="hero-sub">Compiler Design Lab 5 · AST 抽象语法树、符号表、语义错误报告、Graphviz 可视化、四元式中间代码与批量测试汇总</p>
+    </header>
+
+    <div class="main-tabs">
+      <button class="main-tab active" data-module="overview" type="button">运行概览</button>
+      <button class="main-tab" data-module="viewer" type="button">结果查看器</button>
+      <button class="main-tab" data-module="source" type="button">源码与运行命令</button>
+      <button class="main-tab" data-module="report" type="button">报告亮点</button>
+    </div>
+
+    <section id="module-overview" class="module active">
+      <div class="layout wide-right">
+        <section class="card">
+          <h2>输出文件加载</h2>
+          <p class="sub">推荐把本页面放到 <code>lab5/</code> 项目根目录，通过 <code>python3 -m http.server 8000</code> 访问。这样页面会自动读取 <code>output/summary.csv</code>。如果浏览器阻止自动读取，也可以手动上传 summary.csv。</p>
+
+          <div class="actions">
+            <button class="btn" onclick="loadSummaryByFetch()" type="button">自动读取 summary.csv</button>
+            <label class="btn secondary" style="text-align:center; cursor:pointer;">
+              手动上传 summary.csv
+              <input type="file" accept=".csv,text/csv" style="display:none" onchange="loadSummaryFile(event)" />
+            </label>
+            <button class="btn danger" onclick="clearAll()" type="button">清空页面</button>
+          </div>
+
+          <div class="notice">
+            页面本身不执行 C++ 程序，而是读取你已经在服务器上生成的 <code>output/*.ast.txt</code>、<code>output/*.symbols.txt</code>、<code>output/*.errors.txt</code>、<code>output/*.ir.txt</code>、<code>output/*.ast.png</code> 和 <code>output/summary.csv</code>。
+          </div>
+
+          <div class="terminal small" id="overviewTerminal">$ 等待读取 output/summary.csv
+$ 运行建议：make clean && make && make summary
+$ 访问建议：python3 -m http.server 8000</div>
+        </section>
+
+        <section class="card">
+          <h2>实验五统计</h2>
+          <p class="sub">根据 summary.csv 自动统计 AST、DOT、PNG、IR、符号表和语义错误数量。</p>
+
+          <div class="kpi-grid">
+            <div class="kpi"><strong>样例数量</strong><span id="kpiCases">0</span></div>
+            <div class="kpi"><strong>IR 文件</strong><span id="kpiIR">0</span></div>
+            <div class="kpi"><strong>PNG 图</strong><span id="kpiPNG">0</span></div>
+            <div class="kpi"><strong>错误样例</strong><span id="kpiErrors">0</span></div>
+          </div>
+
+          <div class="badge-row" id="overviewBadges">
+            <span class="badge">等待加载</span>
+          </div>
+        </section>
+      </div>
+
+      <section class="card" style="margin-top:22px;">
+        <h2>批量测试汇总表</h2>
+        <p class="sub">这里展示 <code>summary.csv</code> 的内容，可以作为实验报告选作部分截图。</p>
+        <div class="table-scroll" id="summaryTable"><table><tbody><tr><td>暂无数据</td></tr></tbody></table></div>
+      </section>
+    </section>
+
+    <section id="module-viewer" class="module">
+      <div class="layout wide-left">
+        <section class="card">
+          <h2>样例列表</h2>
+          <p class="sub">选择一个样例后，可查看 AST、符号表、错误报告、四元式 IR 和 AST 图片。</p>
+          <input id="caseFilter" class="input" placeholder="搜索样例编号，例如 1、12、main" oninput="renderCaseList()" />
+          <div class="file-list" id="caseList"></div>
+        </section>
+
+        <section class="card">
+          <h2 id="viewerTitle">结果查看器</h2>
+          <p class="sub">如果自动读取失败，可以点击对应区域的“手动上传文件”按钮。</p>
+
+          <div class="mini-actions">
+            <button class="mini-btn active" data-view="ast" type="button">AST 文本</button>
+            <button class="mini-btn" data-view="symbols" type="button">符号表</button>
+            <button class="mini-btn" data-view="errors" type="button">错误报告</button>
+            <button class="mini-btn" data-view="ir" type="button">四元式 IR</button>
+            <button class="mini-btn" data-view="png" type="button">AST 图片</button>
+          </div>
+
+          <div id="panel-ast" class="viewer-panel active">
+            <div class="actions" style="grid-template-columns: 1fr 1fr 1fr;">
+              <button class="btn" onclick="loadCurrentText('ast')" type="button">自动读取 AST</button>
+              <label class="btn secondary" style="text-align:center; cursor:pointer;">上传 AST<input type="file" style="display:none" onchange="loadTextFile(event, 'ast')" /></label>
+              <button class="btn danger" onclick="setTextPanel('ast', '')" type="button">清空</button>
+            </div>
+            <div class="terminal tall" id="text-ast">暂无 AST 文本</div>
+          </div>
+
+          <div id="panel-symbols" class="viewer-panel">
+            <div class="actions" style="grid-template-columns: 1fr 1fr 1fr;">
+              <button class="btn" onclick="loadCurrentText('symbols')" type="button">自动读取符号表</button>
+              <label class="btn secondary" style="text-align:center; cursor:pointer;">上传符号表<input type="file" style="display:none" onchange="loadTextFile(event, 'symbols')" /></label>
+              <button class="btn danger" onclick="setTextPanel('symbols', '')" type="button">清空</button>
+            </div>
+            <div class="terminal tall" id="text-symbols">暂无符号表</div>
+          </div>
+
+          <div id="panel-errors" class="viewer-panel">
+            <div class="actions" style="grid-template-columns: 1fr 1fr 1fr;">
+              <button class="btn" onclick="loadCurrentText('errors')" type="button">自动读取错误报告</button>
+              <label class="btn secondary" style="text-align:center; cursor:pointer;">上传错误报告<input type="file" style="display:none" onchange="loadTextFile(event, 'errors')" /></label>
+              <button class="btn danger" onclick="setTextPanel('errors', '')" type="button">清空</button>
+            </div>
+            <div class="terminal tall" id="text-errors">暂无错误报告</div>
+          </div>
+
+          <div id="panel-ir" class="viewer-panel">
+            <div class="actions" style="grid-template-columns: 1fr 1fr 1fr;">
+              <button class="btn" onclick="loadCurrentText('ir')" type="button">自动读取 IR</button>
+              <label class="btn secondary" style="text-align:center; cursor:pointer;">上传 IR<input type="file" style="display:none" onchange="loadTextFile(event, 'ir')" /></label>
+              <button class="btn danger" onclick="setTextPanel('ir', '')" type="button">清空</button>
+            </div>
+            <div class="terminal tall" id="text-ir">暂无四元式 IR</div>
+          </div>
+
+          <div id="panel-png" class="viewer-panel">
+            <div class="actions" style="grid-template-columns: 1fr 1fr 1fr;">
+              <button class="btn" onclick="loadCurrentPng()" type="button">自动读取 PNG</button>
+              <label class="btn secondary" style="text-align:center; cursor:pointer;">上传 PNG<input type="file" accept="image/*" style="display:none" onchange="loadImageFile(event)" /></label>
+              <button class="btn danger" onclick="clearImage()" type="button">清空</button>
+            </div>
+            <div class="img-wrap" id="pngWrap">暂无 AST 图片</div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="module-source" class="module">
+      <div class="layout">
+        <section class="card">
+          <h2>服务器运行命令</h2>
+          <p class="sub">把本页面保存为 <code>lab5.html</code>，放到项目根目录 <code>/home/dfa_lab/zly/lab5</code> 下。</p>
+          <div class="terminal tall">cd /home/dfa_lab/zly/lab5
+
+make clean
+make
+make summary
+
+# 生成所有 AST 图片
+for f in output/*.ast.dot; do
+    dot -Tpng "$f" -o "${f%.dot}.png"
+done
+
+# 重新生成汇总表，让 png 列显示 yes
+./scripts/summary.sh
+
+# 启动网页服务
+python3 -m http.server 8000
+
+# 浏览器打开
+http://服务器IP:8000/lab5.html</div>
+        </section>
+
+        <section class="card">
+          <h2>页面使用说明</h2>
+          <ol class="steps">
+            <li>先在服务器运行 <code>make summary</code>，生成 <code>output/summary.csv</code> 和 <code>output/*.ir.txt</code>。</li>
+            <li>运行 <code>dot -Tpng</code> 命令生成 <code>output/*.ast.png</code>。</li>
+            <li>启动 <code>python3 -m http.server 8000</code>。</li>
+            <li>进入本页面后点击“自动读取 summary.csv”。</li>
+            <li>进入“结果查看器”，选择某个样例，分别查看 AST、符号表、错误报告、IR 和 AST 图片。</li>
+          </ol>
+          <div class="notice">如果学校服务器端口无法从外网访问，可以用浏览器直接打开 HTML，然后手动上传 summary.csv、AST、IR、PNG 文件进行展示。</div>
+        </section>
+      </div>
+    </section>
+
+    <section id="module-report" class="module">
+      <section class="card">
+        <h2>实验报告可写亮点</h2>
+        <p class="sub">这一页可以直接作为你报告或答辩的思路。</p>
+
+        <div class="badge-row">
+          <span class="badge">SLR 引导语义动作</span>
+          <span class="badge">AST 文本树</span>
+          <span class="badge">AST DOT 可视化</span>
+          <span class="badge">符号表管理</span>
+          <span class="badge">语义错误检测</span>
+          <span class="badge">批量测试</span>
+          <span class="badge">四元式 IR</span>
+          <span class="badge">衔接实验六</span>
+        </div>
+
+        <h3>必做部分</h3>
+        <div class="terminal small">在 SLR(1) 语法分析基础上加入语义分析框架。程序在分析过程中构建 AST，维护符号表，并输出语义错误报告。支持变量声明、赋值语句、return 语句、函数声明、函数调用等结构，能够检测未声明变量、未声明函数、重复声明和类型不匹配等语义错误。</div>
+
+        <h3>选做一：AST 可视化</h3>
+        <div class="terminal small">在 AST 文本输出的基础上，额外输出 Graphviz DOT 文件，并通过 dot 工具转换为 PNG 图片，便于直观展示程序的语法结构。</div>
+
+        <h3>选做二：批量测试汇总</h3>
+        <div class="terminal small">编写 summary.sh，对多个 .src 示例程序批量运行，并自动统计 AST、DOT、PNG、IR、符号表、错误数量和警告数量。</div>
+
+        <h3>选做三：四元式中间代码</h3>
+        <div class="terminal small">在 AST 基础上初步生成四元式 IR，例如变量声明、数组声明、赋值、函数调用、return、print、if、while 和表达式计算。该部分可作为实验六中间代码生成的基础。</div>
+      </section>
+    </section>
+  </div>
+
+  <script>
+    let summaryRows = [];
+    let currentCase = "";
+    let currentView = "ast";
+
+    const fileSuffix = {
+      ast: ".ast.txt",
+      symbols: ".symbols.txt",
+      errors: ".errors.txt",
+      ir: ".ir.txt",
+      png: ".ast.png"
+    };
+
+    document.querySelectorAll(".main-tab").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.module;
+        document.querySelectorAll(".main-tab").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        document.querySelectorAll(".module").forEach((m) => m.classList.remove("active"));
+        document.getElementById(`module-${target}`).classList.add("active");
+      });
+    });
+
+    document.querySelectorAll(".mini-btn[data-view]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        currentView = btn.dataset.view;
+        document.querySelectorAll(".mini-btn[data-view]").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        document.querySelectorAll(".viewer-panel").forEach((p) => p.classList.remove("active"));
+        document.getElementById(`panel-${currentView}`).classList.add("active");
+      });
+    });
+
+    function setTerminal(text) {
+      document.getElementById("overviewTerminal").textContent = text;
+    }
+
+    function csvParse(text) {
+      const lines = text.trim().split(/\r?\n/).filter(Boolean);
+      if (!lines.length) return [];
+      const headers = splitCsvLine(lines[0]).map(x => x.trim());
+      return lines.slice(1).map(line => {
+        const values = splitCsvLine(line);
+        const obj = {};
+        headers.forEach((h, i) => obj[h] = (values[i] || "").trim());
+        return obj;
+      });
+    }
+
+    function splitCsvLine(line) {
+      const out = [];
+      let cur = "";
+      let quoted = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          quoted = !quoted;
+        } else if (ch === ',' && !quoted) {
+          out.push(cur);
+          cur = "";
+        } else {
+          cur += ch;
+        }
+      }
+      out.push(cur);
+      return out;
+    }
+
+    async function loadSummaryByFetch() {
+      try {
+        const res = await fetch("output/summary.csv", { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        applySummary(text, "自动读取 output/summary.csv 成功");
+      } catch (err) {
+        setTerminal(`$ 自动读取失败\n$ ${err.message}\n$ 请确认使用 python3 -m http.server 8000 启动，而不是直接 file:// 打开。\n$ 或者点击“手动上传 summary.csv”。`);
+      }
+    }
+
+    function loadSummaryFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => applySummary(String(reader.result), `手动上传 ${file.name} 成功`);
+      reader.readAsText(file);
+    }
+
+    function applySummary(text, msg) {
+      summaryRows = csvParse(text);
+      renderSummaryTable();
+      renderKpis();
+      renderCaseList();
+      setTerminal(`$ ${msg}\n$ 样例数量: ${summaryRows.length}\n$ 现在可以进入“结果查看器”查看单个样例输出。`);
+      if (summaryRows.length && !currentCase) selectCase(summaryRows[0].case);
+    }
+
+    function renderKpis() {
+      const cases = summaryRows.length;
+      const ir = summaryRows.filter(r => yes(r.ir)).length;
+      const png = summaryRows.filter(r => yes(r.png)).length;
+      const errCases = summaryRows.filter(r => Number(r.semantic_errors || 0) > 0).length;
+      const warnCases = summaryRows.filter(r => Number(r.warnings || 0) > 0).length;
+
+      document.getElementById("kpiCases").textContent = cases;
+      document.getElementById("kpiIR").textContent = ir;
+      document.getElementById("kpiPNG").textContent = png;
+      document.getElementById("kpiErrors").textContent = errCases;
+
+      document.getElementById("overviewBadges").innerHTML = `
+        <span class="badge">AST: ${summaryRows.filter(r => yes(r.ast)).length}/${cases}</span>
+        <span class="badge">DOT: ${summaryRows.filter(r => yes(r.dot)).length}/${cases}</span>
+        <span class="badge">IR: ${ir}/${cases}</span>
+        <span class="badge ${png < cases ? "warn" : ""}">PNG: ${png}/${cases}</span>
+        <span class="badge ${errCases ? "danger" : ""}">错误样例: ${errCases}</span>
+        <span class="badge ${warnCases ? "warn" : ""}">警告样例: ${warnCases}</span>
+      `;
+    }
+
+    function renderSummaryTable() {
+      if (!summaryRows.length) {
+        document.getElementById("summaryTable").innerHTML = "<table><tbody><tr><td>暂无数据</td></tr></tbody></table>";
+        return;
+      }
+
+      const headers = Object.keys(summaryRows[0]);
+      let html = "<table><thead><tr>";
+      headers.forEach(h => html += `<th>${escapeHtml(h)}</th>`);
+      html += "</tr></thead><tbody>";
+      summaryRows.forEach(row => {
+        html += "<tr>";
+        headers.forEach(h => {
+          let cls = "";
+          if (h === "status") cls = row[h] === "PASS" ? "status-pass" : "status-error";
+          if (h === "warnings" && Number(row[h] || 0) > 0) cls = "status-warn";
+          html += `<td class="${cls}">${escapeHtml(row[h] || "")}</td>`;
+        });
+        html += "</tr>";
+      });
+      html += "</tbody></table>";
+      document.getElementById("summaryTable").innerHTML = html;
+    }
+
+    function renderCaseList() {
+      const wrap = document.getElementById("caseList");
+      const filter = document.getElementById("caseFilter").value.trim().toLowerCase();
+      const rows = summaryRows.filter(r => !filter || String(r.case).toLowerCase().includes(filter));
+      if (!rows.length) {
+        wrap.innerHTML = "<div class='notice'>暂无样例，请先加载 summary.csv</div>";
+        return;
+      }
+      wrap.innerHTML = rows.map(r => {
+        const err = Number(r.semantic_errors || 0);
+        const warn = Number(r.warnings || 0);
+        const statusText = err ? `${err} errors` : warn ? `${warn} warnings` : "PASS";
+        const statusClass = err ? "status-error" : warn ? "status-warn" : "status-pass";
+        const active = r.case === currentCase ? "active" : "";
+        return `<button class="file-btn ${active}" onclick="selectCase('${escapeJs(r.case)}')" type="button"><span>${escapeHtml(r.case)}.src</span><span class="${statusClass}">${statusText}</span></button>`;
+      }).join("");
+    }
+
+    function selectCase(name) {
+      currentCase = name;
+      document.getElementById("viewerTitle").textContent = `结果查看器：${name}.src`;
+      renderCaseList();
+      loadCurrentText("ast");
+      loadCurrentText("symbols");
+      loadCurrentText("errors");
+      loadCurrentText("ir");
+      loadCurrentPng();
+    }
+
+    async function loadCurrentText(kind) {
+      if (!currentCase) {
+        setTextPanel(kind, "请先选择样例");
+        return;
+      }
+      try {
+        const path = `output/${currentCase}${fileSuffix[kind]}`;
+        const res = await fetch(path, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        setTextPanel(kind, text);
+      } catch (err) {
+        setTextPanel(kind, `自动读取失败：${err.message}\n可以手动上传对应文件。`);
+      }
+    }
+
+    function setTextPanel(kind, text) {
+      document.getElementById(`text-${kind}`).textContent = text || `暂无 ${kind} 内容`;
+    }
+
+    function loadTextFile(event, kind) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => setTextPanel(kind, String(reader.result));
+      reader.readAsText(file);
+    }
+
+    async function loadCurrentPng() {
+      const wrap = document.getElementById("pngWrap");
+      if (!currentCase) {
+        wrap.textContent = "请先选择样例";
+        return;
+      }
+      const path = `output/${currentCase}.ast.png`;
+      try {
+        const res = await fetch(path, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        wrap.innerHTML = `<img src="${url}" alt="${escapeHtml(currentCase)} AST" />`;
+      } catch (err) {
+        wrap.textContent = `自动读取 PNG 失败：${err.message}。请先运行 dot -Tpng 或手动上传图片。`;
+      }
+    }
+
+    function loadImageFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      document.getElementById("pngWrap").innerHTML = `<img src="${url}" alt="AST PNG" />`;
+    }
+
+    function clearImage() {
+      document.getElementById("pngWrap").textContent = "暂无 AST 图片";
+    }
+
+    function clearAll() {
+      summaryRows = [];
+      currentCase = "";
+      renderSummaryTable();
+      renderKpis();
+      renderCaseList();
+      ["ast", "symbols", "errors", "ir"].forEach(k => setTextPanel(k, ""));
+      clearImage();
+      setTerminal("$ 已清空页面数据");
+    }
+
+    function yes(v) {
+      return String(v || "").trim().toLowerCase() === "yes";
+    }
+
+    function escapeHtml(raw) {
+      return String(raw)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function escapeJs(raw) {
+      return String(raw).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    }
+  </script>
+</body>
+</html>
