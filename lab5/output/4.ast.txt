@@ -1,0 +1,12 @@
+Program
+  FunctionDecl(main) : int
+    Params
+    Block
+      ArrayDecl(arr) : int
+        Size(5) : int
+      Assign
+        ArrayAccess(arr) : int
+          IntLiteral(4) : int
+        IntLiteral(10) : int
+  TopLevelCall
+    FunctionCall(main) : int

@@ -1,0 +1,4 @@
+No semantic errors.
+
+Warnings:
+- Line 3: unary minus is treated as an optional extension

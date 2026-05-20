@@ -1,0 +1,12 @@
+Program
+  FunctionDecl(main) : float
+    Params
+    Block
+      VarDecl(x) : float
+      Assign
+        ID(x) : float
+        FloatLiteral(3.14) : float
+      Return
+        ID(x) : float
+  TopLevelCall
+    FunctionCall(main) : float

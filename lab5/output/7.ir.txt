@@ -1,0 +1,4 @@
+0: (func, calc, float, _)
+1: (return, 8.88, _, _)
+2: (endfunc, calc, _, _)
+3: (call, calc, 0, t1)

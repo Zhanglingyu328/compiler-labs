@@ -1,0 +1,8 @@
+0: (func, loop, void, _)
+1: (call, loop, 0, t1)
+2: (endfunc, loop, _, _)
+3: (func, main, int, _)
+4: (call, loop, 0, t2)
+5: (return, 0, _, _)
+6: (endfunc, main, _, _)
+7: (call, main, 0, t3)

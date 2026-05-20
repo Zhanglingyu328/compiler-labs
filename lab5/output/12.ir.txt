@@ -1,0 +1,5 @@
+0: (func, func, void, _)
+1: (array_decl, int, 8, arr)
+2: (=, 5, _, arr[0])
+3: (endfunc, func, _, _)
+4: (call, func, 0, t1)

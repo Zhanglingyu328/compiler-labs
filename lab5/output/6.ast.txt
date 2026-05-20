@@ -1,0 +1,8 @@
+Program
+  FunctionDecl(main) : int
+    Params
+    Block
+      ExprStmt
+        FunctionCall(foo) : error
+  TopLevelCall
+    FunctionCall(main) : int

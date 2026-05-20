@@ -1,0 +1,13 @@
+Program
+  FunctionDecl(main) : int
+    Params
+    Block
+      If
+        BinaryOp(<) : int @t1
+          IntLiteral(1) : int
+          IntLiteral(2) : int
+        Block
+          Print
+            StringLiteral(Yes) : string
+  TopLevelCall
+    FunctionCall(main) : int

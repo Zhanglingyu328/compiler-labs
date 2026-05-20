@@ -1,0 +1,4 @@
+0: (func, test, void, _)
+1: (print, a, _, _)
+2: (endfunc, test, _, _)
+3: (call, test, 0, t1)

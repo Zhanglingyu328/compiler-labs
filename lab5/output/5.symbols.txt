@@ -1,0 +1,3 @@
+name            kind      type      scope   scopeName     arraySize params
+--------------------------------------------------------------------------------------
+test            function  void      0       global        -         

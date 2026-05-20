@@ -1,0 +1,28 @@
+digraph AST {
+  node [shape=box];
+  n0 [label="Program"];
+  n1 [label="FunctionDecl(calc) : int"];
+  n2 [label="Params"];
+  n1 -> n2;
+  n3 [label="Block"];
+  n4 [label="Return"];
+  n5 [label="IntLiteral(1) : int"];
+  n4 -> n5;
+  n3 -> n4;
+  n1 -> n3;
+  n0 -> n1;
+  n6 [label="FunctionDecl(abc) : int"];
+  n7 [label="Params"];
+  n6 -> n7;
+  n8 [label="Block"];
+  n9 [label="ExprStmt"];
+  n10 [label="FunctionCall(calc) : int"];
+  n9 -> n10;
+  n8 -> n9;
+  n6 -> n8;
+  n0 -> n6;
+  n11 [label="TopLevelCall"];
+  n12 [label="FunctionCall(abc) : int"];
+  n11 -> n12;
+  n0 -> n11;
+}

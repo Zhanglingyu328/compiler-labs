@@ -1,0 +1,4 @@
+name            kind      type      scope   scopeName     arraySize params
+--------------------------------------------------------------------------------------
+func            function  void      0       global        -         
+arr             array     int       2       block:func    8         

@@ -1,0 +1,4 @@
+name            kind      type      scope   scopeName     arraySize params
+--------------------------------------------------------------------------------------
+loop            function  void      0       global        -         
+main            function  int       0       global        -         

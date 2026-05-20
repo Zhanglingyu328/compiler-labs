@@ -1,0 +1,13 @@
+Program
+  FunctionDecl(calc) : int
+    Params
+    Block
+      Return
+        IntLiteral(1) : int
+  FunctionDecl(abc) : int
+    Params
+    Block
+      ExprStmt
+        FunctionCall(calc) : int
+  TopLevelCall
+    FunctionCall(abc) : int

@@ -1,0 +1,15 @@
+Program
+  FunctionDecl(test) : int
+    Params
+    Block
+      VarDecl(x) : int
+      Assign
+        ID(x) : int
+        IntLiteral(5) : int
+      Assign
+        ID(x) : int
+        IntLiteral(10) : int
+      Return
+        ID(x) : int
+  TopLevelCall
+    FunctionCall(test) : int

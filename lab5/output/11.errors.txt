@@ -1,0 +1,4 @@
+Semantic errors:
+- Line 7: function 'add' expects 2 argument(s), got 1
+- Line 7: argument 1 of 'add' expects int, got float
+- Line 8: void function should not return a value

@@ -1,0 +1,2 @@
+Semantic errors:
+- Line 2: function 'foo' is not declared

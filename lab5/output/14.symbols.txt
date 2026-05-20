@@ -1,0 +1,4 @@
+name            kind      type      scope   scopeName     arraySize params
+--------------------------------------------------------------------------------------
+calc            function  int       0       global        -         
+abc             function  int       0       global        -         

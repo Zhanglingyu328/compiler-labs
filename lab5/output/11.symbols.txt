@@ -1,0 +1,7 @@
+name            kind      type      scope   scopeName     arraySize params
+--------------------------------------------------------------------------------------
+add             function  int       0       global        -         (int a,int b)
+a               param     int       1       function:add  -         
+b               param     int       1       function:add  -         
+acc             function  void      0       global        -         
+sum             var       int       2       block:acc     -         

@@ -1,0 +1,15 @@
+Program
+  FunctionDecl(loop) : void
+    Params
+    Block
+      ExprStmt
+        FunctionCall(loop) : void
+  FunctionDecl(main) : int
+    Params
+    Block
+      ExprStmt
+        FunctionCall(loop) : void
+      Return
+        IntLiteral(0) : int
+  TopLevelCall
+    FunctionCall(main) : int

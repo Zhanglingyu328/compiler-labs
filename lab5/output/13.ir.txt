@@ -1,0 +1,7 @@
+0: (func, test, int, _)
+1: (decl, int, _, x)
+2: (=, 5, _, x)
+3: (=, 10, _, x)
+4: (return, x, _, _)
+5: (endfunc, test, _, _)
+6: (call, test, 0, t1)

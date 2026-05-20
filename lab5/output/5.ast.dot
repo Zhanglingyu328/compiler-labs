@@ -1,0 +1,18 @@
+digraph AST {
+  node [shape=box];
+  n0 [label="Program"];
+  n1 [label="FunctionDecl(test) : void"];
+  n2 [label="Params"];
+  n1 -> n2;
+  n3 [label="Block"];
+  n4 [label="Print"];
+  n5 [label="ID(a) : error"];
+  n4 -> n5;
+  n3 -> n4;
+  n1 -> n3;
+  n0 -> n1;
+  n6 [label="TopLevelCall"];
+  n7 [label="FunctionCall(test) : void"];
+  n6 -> n7;
+  n0 -> n6;
+}

@@ -1,0 +1,8 @@
+Program
+  FunctionDecl(calc) : float
+    Params
+    Block
+      Return
+        FloatLiteral(8.88) : float
+  TopLevelCall
+    FunctionCall(calc) : float

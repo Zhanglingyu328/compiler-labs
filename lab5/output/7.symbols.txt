@@ -1,0 +1,3 @@
+name            kind      type      scope   scopeName     arraySize params
+--------------------------------------------------------------------------------------
+calc            function  float     0       global        -         

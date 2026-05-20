@@ -1,0 +1,8 @@
+Program
+  FunctionDecl(test) : void
+    Params
+    Block
+      Print
+        ID(a) : error
+  TopLevelCall
+    FunctionCall(test) : void
