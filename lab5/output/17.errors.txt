@@ -1,0 +1,3 @@
+Semantic errors:
+- Line 7: identifier 'c' is not declared
+- Line 8: identifier 'c' is not declared

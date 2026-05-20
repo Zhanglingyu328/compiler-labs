@@ -1,0 +1,18 @@
+Program
+  FunctionDecl(foo) : float
+    Params
+    Block
+      VarDecl(x) : float
+      VarDecl(y) : float
+      Assign
+        ID(x) : float
+        FloatLiteral(3.14) : float
+      Assign
+        ID(y) : float
+        BinaryOp(+) : float @t1
+          ID(x) : float
+          FloatLiteral(2.5) : float
+      Return
+        ID(y) : float
+  TopLevelCall
+    FunctionCall(foo) : float

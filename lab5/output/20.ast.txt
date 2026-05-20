@@ -1,0 +1,22 @@
+Program
+  FunctionDecl(main) : int
+    Params
+    Block
+      ArrayDecl(arr) : int
+        Size(3) : int
+      Assign
+        ArrayAccess(arr) : int
+          IntLiteral(0) : int
+        IntLiteral(1) : int
+      Assign
+        ArrayAccess(arr) : int
+          IntLiteral(1) : int
+        IntLiteral(2) : int
+      Return
+        BinaryOp(+) : int @t1
+          ArrayAccess(arr) : int
+            IntLiteral(0) : int
+          ArrayAccess(arr) : int
+            IntLiteral(1) : int
+  TopLevelCall
+    FunctionCall(main) : int

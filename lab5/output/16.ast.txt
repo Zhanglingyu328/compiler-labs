@@ -1,0 +1,12 @@
+Program
+  FunctionDecl(main) : int
+    Params
+    Block
+      VarDecl(d) : int
+      Assign
+        ID(d) : int
+        IntLiteral(5) : int
+      Return
+        ID(d) : int
+  TopLevelCall
+    FunctionCall(main) : int

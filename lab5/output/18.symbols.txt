@@ -1,0 +1,5 @@
+name            kind      type      scope   scopeName     arraySize params
+--------------------------------------------------------------------------------------
+foo             function  float     0       global        -         
+x               var       float     2       block:foo     -         
+y               var       float     2       block:foo     -         

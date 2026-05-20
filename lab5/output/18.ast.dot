@@ -1,0 +1,38 @@
+digraph AST {
+  node [shape=box];
+  n0 [label="Program"];
+  n1 [label="FunctionDecl(foo) : float"];
+  n2 [label="Params"];
+  n1 -> n2;
+  n3 [label="Block"];
+  n4 [label="VarDecl(x) : float"];
+  n3 -> n4;
+  n5 [label="VarDecl(y) : float"];
+  n3 -> n5;
+  n6 [label="Assign"];
+  n7 [label="ID(x) : float"];
+  n6 -> n7;
+  n8 [label="FloatLiteral(3.14) : float"];
+  n6 -> n8;
+  n3 -> n6;
+  n9 [label="Assign"];
+  n10 [label="ID(y) : float"];
+  n9 -> n10;
+  n11 [label="BinaryOp(+) : float @t1"];
+  n12 [label="ID(x) : float"];
+  n11 -> n12;
+  n13 [label="FloatLiteral(2.5) : float"];
+  n11 -> n13;
+  n9 -> n11;
+  n3 -> n9;
+  n14 [label="Return"];
+  n15 [label="ID(y) : float"];
+  n14 -> n15;
+  n3 -> n14;
+  n1 -> n3;
+  n0 -> n1;
+  n16 [label="TopLevelCall"];
+  n17 [label="FunctionCall(foo) : float"];
+  n16 -> n17;
+  n0 -> n16;
+}
