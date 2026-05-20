@@ -1,0 +1,13 @@
+Semantic errors:
+- Line 2: invalid character
+- Line 2: invalid character
+- Line 2: invalid character
+- Line 2: ';' expected after declaration, got 'INVALID'
+- Line 2: expression expected, got 'INVALID'
+- Line 2: expression expected, got 'INVALID'
+- Line 2: expression expected, got 'INVALID'
+- Line 5: expression expected, got '{'
+- Line 9: unexpected token at top level: return
+- Line 9: top-level identifier must be a function call
+- Line 10: unexpected token at top level: }
+- Line 10: unexpected token at top level: ;

@@ -1,0 +1,20 @@
+Semantic errors:
+- Line 2: identifier 'i' is not declared
+- Line 3: identifier 'j' is not declared
+- Line 4: identifier 'j' is not declared
+- Line 4: identifier 'j' is not declared
+- Line 5: identifier 'j' is not declared
+- Line 6: identifier 'j' is not declared
+- Line 6: identifier 'j' is not declared
+- Line 7: identifier 'j' is not declared
+- Line 14: expression expected, got '{'
+- Line 14: ';' expected after declaration, got 'INT_LIT'
+- Line 14: expression expected, got ','
+- Line 14: expression expected, got ','
+- Line 14: expression expected, got ','
+- Line 14: expression expected, got ','
+- Line 15: identifier 'arr' is not declared
+- Line 16: unexpected token at top level: return
+- Line 16: unexpected token at top level: INT_LIT
+- Line 17: unexpected token at top level: }
+- Line 17: unexpected token at top level: ;

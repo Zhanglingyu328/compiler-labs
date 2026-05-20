@@ -1,0 +1,23 @@
+Program
+  FunctionDecl(add) : int
+    Params
+      Param(a) : int
+      Param(b) : int
+    Block
+      Return
+        BinaryOp(+) : int @t1
+          ID(a) : int
+          ID(b) : int
+  FunctionDecl(calc) : int
+    Params
+    Block
+      VarDecl(sum) : int
+      Assign
+        ID(sum) : int
+        FunctionCall(add) : int
+          IntLiteral(3) : int
+          IntLiteral(4) : int
+      Return
+        ID(sum) : int
+  TopLevelCall
+    FunctionCall(calc) : int

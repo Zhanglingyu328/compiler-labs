@@ -1,0 +1,5 @@
+name            kind      type      scope   scopeName     arraySize params
+--------------------------------------------------------------------------------------
+factorial       function  int       0       global        -         (int n)
+n               param     int       1       function:factorial-         
+main            function  int       0       global        -         

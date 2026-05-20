@@ -1,0 +1,7 @@
+name            kind      type      scope   scopeName     arraySize params
+--------------------------------------------------------------------------------------
+sort            function  void      0       global        -         (int arr)
+arr             array     int       1       function:sort -1        
+temp            var       int       5       if            -         
+test            function  int       0       global        -         
+arr             array     int       2       block:test    5         

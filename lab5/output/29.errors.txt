@@ -1,0 +1,16 @@
+Semantic errors:
+- Line 11: expression expected, got '{'
+- Line 11: expression expected, got ','
+- Line 11: expression expected, got ','
+- Line 11: expression expected, got ','
+- Line 11: expression expected, got ','
+- Line 12: identifier 'arr' is not declared
+- Line 12: identifier 'arr4' is not declared
+- Line 12: ')' expected after arguments, got ']'
+- Line 12: unexpected token at top level: ]
+- Line 12: unexpected token at top level: ,
+- Line 12: unexpected token at top level: )
+- Line 12: unexpected token at top level: ;
+- Line 13: unexpected token at top level: return
+- Line 13: top-level identifier must be a function call
+- Line 14: unexpected token at top level: }

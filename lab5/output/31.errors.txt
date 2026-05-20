@@ -1,0 +1,7 @@
+Semantic errors:
+- Line 4: invalid character
+- Line 4: invalid character
+- Line 4: invalid character
+- Line 4: expression expected, got 'INVALID'
+- Line 4: expression expected, got 'INVALID'
+- Line 4: expression expected, got 'INVALID'

@@ -1,0 +1,8 @@
+Semantic errors:
+- Line 6: invalid character
+- Line 6: invalid character
+- Line 6: invalid character
+- Line 3: identifier 'tmep' is not declared
+- Line 6: unexpected token at top level: INVALID
+- Line 6: unexpected token at top level: INVALID
+- Line 6: unexpected token at top level: INVALID

@@ -1,0 +1,10 @@
+name            kind      type      scope   scopeName     arraySize params
+--------------------------------------------------------------------------------------
+calculate       function  int       0       global        -         (int a,int b,int c)
+a               param     int       1       function:calculate-         
+b               param     int       1       function:calculate-         
+c               param     int       1       function:calculate-         
+result          var       int       2       block:calculate-         
+temp            var       int       2       block:calculate-         
+main            function  int       0       global        -         
+x               var       int       2       block:main    -         

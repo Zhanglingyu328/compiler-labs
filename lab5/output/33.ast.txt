@@ -1,0 +1,72 @@
+Program
+  FunctionDecl(main) : int
+    Params
+    Block
+      ArrayDecl(matrix) : int
+        Size(3) : int
+      ExprStmt
+        Error
+      ExprStmt
+        IntLiteral(3) : int
+      ExprStmt
+        Error
+      ExprStmt
+        FunctionCall(for) : error
+          Error
+      Assign
+        ID(i) : error
+        IntLiteral(0) : int
+      ExprStmt
+        BinaryOp(<) : error @t1
+          ID(i) : error
+          IntLiteral(3) : int
+      Assign
+        ID(i) : error
+        BinaryOp(+) : error @t2
+          ID(i) : error
+          IntLiteral(1) : int
+      ExprStmt
+        Error
+      ExprStmt
+        Error
+      ExprStmt
+        FunctionCall(for) : error
+          Error
+      Assign
+        ID(j) : error
+        IntLiteral(0) : int
+      ExprStmt
+        BinaryOp(<) : error @t3
+          ID(j) : error
+          IntLiteral(3) : int
+      Assign
+        ID(j) : error
+        BinaryOp(+) : error @t4
+          ID(j) : error
+          IntLiteral(1) : int
+      ExprStmt
+        Error
+      ExprStmt
+        Error
+      ExprStmt
+        ArrayAccess(matrix) : int
+          ID(i) : error
+      ExprStmt
+        Error
+      ExprStmt
+        ID(j) : error
+      ExprStmt
+        Error
+      ExprStmt
+        Error
+      ExprStmt
+        BinaryOp(+) : error @t5
+          ID(i) : error
+          ID(j) : error
+  Error
+  Error
+  Error
+  Error
+  Error
+  TopLevelCall
+    FunctionCall(main) : int

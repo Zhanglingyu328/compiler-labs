@@ -1,0 +1,7 @@
+Semantic errors:
+- Line 3: ')' expected after if condition, got '='
+- Line 3: '{' expected to start block, got '='
+- Line 3: expression expected, got '='
+- Line 3: expression expected, got ')'
+- Line 3: expression expected, got '{'
+- Line 6: void function should not return a value

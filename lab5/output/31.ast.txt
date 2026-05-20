@@ -1,0 +1,33 @@
+Program
+  FunctionDecl(factorial) : int
+    Params
+      Param(n) : int
+    Block
+      If
+        BinaryOp(==) : int @t1
+          ID(n) : int
+          IntLiteral(0) : int
+        Block
+          Return
+            IntLiteral(1) : int
+      ExprStmt
+        Error
+      ExprStmt
+        Error
+      ExprStmt
+        Error
+      Return
+        BinaryOp(*) : int @t3
+          ID(n) : int
+          FunctionCall(factorial) : int
+            BinaryOp(-) : int @t2
+              ID(n) : int
+              IntLiteral(1) : int
+  FunctionDecl(main) : int
+    Params
+    Block
+      Return
+        FunctionCall(factorial) : int
+          IntLiteral(5) : int
+  TopLevelCall
+    FunctionCall(main) : int

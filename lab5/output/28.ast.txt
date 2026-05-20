@@ -1,0 +1,55 @@
+Program
+  FunctionDecl(max) : float
+    Params
+      ArrayParam(arr) : float
+    Block
+      VarDecl(max_val) : float
+      Assign
+        ID(max_val) : float
+        ArrayAccess(arr) : float
+          IntLiteral(0) : int
+      If
+        BinaryOp(<) : int @t1
+          ID(max_val) : float
+          ArrayAccess(arr) : float
+            IntLiteral(1) : int
+        Block
+          Assign
+            ID(max_val) : float
+            ArrayAccess(arr) : float
+              IntLiteral(1) : int
+      ExprStmt
+        Error
+      If
+        BinaryOp(<) : int @t2
+          ID(max_val) : float
+          ArrayAccess(arr) : float
+            IntLiteral(2) : int
+        Block
+          Assign
+            ID(max_val) : float
+            ArrayAccess(arr) : float
+              IntLiteral(2) : int
+      ExprStmt
+        Error
+      Return
+        ID(max_val) : float
+  FunctionDecl(main) : int
+    Params
+    Block
+      ArrayDecl(arr) : float
+        Size(3) : int
+      Assign
+        ArrayAccess(arr) : float
+          IntLiteral(2) : int
+        FloatLiteral(3.14) : float
+      Assign
+        ArrayAccess(arr) : float
+          IntLiteral(1) : int
+        FloatLiteral(8.8) : float
+      Return
+        FunctionCall(max) : float
+          ArrayAccess(arr) : float
+            Error
+  TopLevelCall
+    FunctionCall(main) : int

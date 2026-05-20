@@ -1,0 +1,8 @@
+name            kind      type      scope   scopeName     arraySize params
+--------------------------------------------------------------------------------------
+swap            function  void      0       global        -         (int a,int b)
+a               param     int       1       function:swap -         
+b               param     int       1       function:swap -         
+temp            var       int       2       block:swap    -         
+main            function  int       0       global        -         
+arr             array     int       2       block:main    5         

@@ -1,0 +1,9 @@
+name            kind      type      scope   scopeName     arraySize params
+--------------------------------------------------------------------------------------
+compute         function  float     0       global        -         (float a,float b)
+a               param     float     1       function:compute-         
+b               param     float     1       function:compute-         
+main            function  int       0       global        -         
+x               var       float     2       block:main    -         
+y               var       float     2       block:main    -         
+result          var       float     2       block:main    -         

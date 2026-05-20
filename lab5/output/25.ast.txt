@@ -1,0 +1,23 @@
+Program
+  FunctionDecl(foo) : void
+    Params
+    Block
+      VarDecl(a) : int
+        IntLiteral(5) : int
+      If
+        ID(a) : int
+        Block
+          ExprStmt
+            Error
+          ExprStmt
+            IntLiteral(3) : int
+          ExprStmt
+            Error
+          ExprStmt
+            Error
+          Print
+            ID(a) : int
+      Return
+        ID(a) : int
+  TopLevelCall
+    FunctionCall(foo) : void

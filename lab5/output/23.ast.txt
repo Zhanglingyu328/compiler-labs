@@ -1,0 +1,31 @@
+Program
+  FunctionDecl(max) : int
+    Params
+      Param(a) : int
+      Param(b) : int
+    Block
+      If
+        BinaryOp(<) : int @t1
+          ID(a) : int
+          ID(b) : int
+        Block
+          Return
+            ID(b) : int
+        Block
+          Return
+            ID(a) : int
+      ExprStmt
+        Error
+  FunctionDecl(main) : int
+    Params
+    Block
+      VarDecl(result) : int
+      Assign
+        ID(result) : int
+        FunctionCall(max) : int
+          IntLiteral(5) : int
+          IntLiteral(8) : int
+      Return
+        IntLiteral(0) : int
+  TopLevelCall
+    FunctionCall(main) : int

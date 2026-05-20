@@ -1,0 +1,2 @@
+Semantic errors:
+- Line 12: return type mismatch: expected int, got float

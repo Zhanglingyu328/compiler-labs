@@ -1,0 +1,7 @@
+name            kind      type      scope   scopeName     arraySize params
+--------------------------------------------------------------------------------------
+max             function  float     0       global        -         (float arr)
+arr             array     float     1       function:max  -1        
+max_val         var       float     2       block:max     -         
+main            function  int       0       global        -         
+arr             array     float     2       block:main    3         

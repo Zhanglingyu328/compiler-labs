@@ -1,0 +1,50 @@
+Program
+  FunctionDecl(calculate) : int
+    Params
+      Param(a) : int
+      Param(b) : int
+      Param(c) : int
+    Block
+      VarDecl(result) : int
+      ExprStmt
+        Error
+      ExprStmt
+        Error
+      ExprStmt
+        Error
+      VarDecl(temp) : int
+      Assign
+        ID(result) : int
+        BinaryOp(+) : int @t2
+          BinaryOp(*) : int @t1
+            ID(a) : int
+            ID(b) : int
+          ID(c) : int
+      ExprStmt
+        Error
+      Assign
+        ID(temp) : int
+        BinaryOp(*) : int @t3
+          ID(result) : int
+          IntLiteral(2) : int
+      Assign
+        ID(result) : int
+        ID(temp) : int
+  Error
+  Error
+  Error
+  Error
+  FunctionDecl(main) : int
+    Params
+    Block
+      VarDecl(x) : int
+      Assign
+        ID(x) : int
+        FunctionCall(calculate) : int
+          IntLiteral(3) : int
+          IntLiteral(4) : int
+          IntLiteral(5) : int
+      Return
+        ID(x) : int
+  TopLevelCall
+    FunctionCall(main) : int

@@ -1,0 +1,38 @@
+Program
+  FunctionDecl(swap) : void
+    Params
+      Param(a) : int
+      Param(b) : int
+    Block
+      VarDecl(temp) : int
+      Assign
+        ID(tmep) : error
+        ID(a) : int
+      Assign
+        ID(a) : int
+        ID(b) : int
+      Assign
+        ID(b) : int
+        ID(temp) : int
+  Error
+  Error
+  Error
+  FunctionDecl(test) : int
+    Params
+    Block
+      VarDecl(x) : int
+      VarDecl(y) : int
+      Assign
+        ID(x) : int
+        IntLiteral(3) : int
+      Assign
+        ID(y) : int
+        IntLiteral(6) : int
+      ExprStmt
+        FunctionCall(swap) : void
+          ID(x) : int
+          ID(y) : int
+      Return
+        IntLiteral(0) : int
+  TopLevelCall
+    FunctionCall(test) : int

@@ -1,0 +1,6 @@
+Semantic errors:
+- Line 6: expression expected, got ';'
+- Line 9: expression expected, got ';'
+- Line 17: expression expected, got ']'
+- Line 17: ']' expected after array index, got ','
+- Line 17: return type mismatch: expected int, got float

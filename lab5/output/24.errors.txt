@@ -1,0 +1,5 @@
+Semantic errors:
+- Line 4: expression expected, got ';'
+
+Warnings:
+- Line 9: unary minus is treated as an optional extension

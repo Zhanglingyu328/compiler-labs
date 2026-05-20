@@ -1,0 +1,74 @@
+Program
+  FunctionDecl(sort) : void
+    Params
+      ArrayParam(arr) : int
+    Block
+      While
+        BinaryOp(<) : error @t1
+          ID(i) : error
+          IntLiteral(5) : int
+        Block
+          While
+            BinaryOp(<) : error @t2
+              ID(j) : error
+              IntLiteral(5) : int
+            Block
+              If
+                BinaryOp(<) : int @t4
+                  ArrayAccess(arr) : int
+                    ID(j) : error
+                  ArrayAccess(arr) : int
+                    BinaryOp(+) : error @t3
+                      ID(j) : error
+                      IntLiteral(1) : int
+                Block
+                  VarDecl(temp) : int
+                    ArrayAccess(arr) : int
+                      ID(j) : error
+                  Assign
+                    ArrayAccess(arr) : int
+                      ID(j) : error
+                    ArrayAccess(arr) : int
+                      BinaryOp(+) : error @t5
+                        ID(j) : error
+                        IntLiteral(1) : int
+                  Assign
+                    ArrayAccess(arr) : int
+                      BinaryOp(+) : error @t6
+                        ID(j) : error
+                        IntLiteral(1) : int
+                    ID(temp) : int
+  FunctionDecl(test) : int
+    Params
+    Block
+      ArrayDecl(arr) : int
+        Size(5) : int
+        Error
+      ExprStmt
+        IntLiteral(5) : int
+      ExprStmt
+        Error
+      ExprStmt
+        IntLiteral(3) : int
+      ExprStmt
+        Error
+      ExprStmt
+        IntLiteral(4) : int
+      ExprStmt
+        Error
+      ExprStmt
+        IntLiteral(1) : int
+      ExprStmt
+        Error
+      ExprStmt
+        IntLiteral(2) : int
+  TopLevelCall
+    FunctionCall(sort) : void
+      ArrayAccess(arr) : error
+        IntLiteral(5) : int
+  Error
+  Error
+  Error
+  Error
+  TopLevelCall
+    FunctionCall(test) : int

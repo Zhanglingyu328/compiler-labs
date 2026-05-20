@@ -1,0 +1,34 @@
+Program
+  FunctionDecl(main) : int
+    Params
+    Block
+      VarDecl(score) : int
+      Assign
+        ID(score) : int
+        IntLiteral(85) : int
+      If
+        BinaryOp(<=) : int @t1
+          ID(score) : int
+          IntLiteral(90) : int
+        Block
+          Return
+            IntLiteral(1) : int
+        Block
+          If
+            BinaryOp(<=) : int @t2
+              ID(score) : int
+              IntLiteral(60) : int
+            Block
+              Return
+                IntLiteral(2) : int
+            Block
+              Return
+                IntLiteral(3) : int
+          ExprStmt
+            Error
+      ExprStmt
+        Error
+      Return
+        IntLiteral(0) : int
+  TopLevelCall
+    FunctionCall(main) : int

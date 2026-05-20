@@ -1,0 +1,35 @@
+Semantic errors:
+- Line 2: ';' expected after declaration, got '['
+- Line 2: expression expected, got '['
+- Line 2: expression expected, got ']'
+- Line 3: expression expected, got 'int'
+- Line 3: ')' expected after arguments, got 'ID'
+- Line 3: function 'for' is not declared
+- Line 3: identifier 'i' is not declared
+- Line 3: identifier 'i' is not declared
+- Line 3: identifier 'i' is not declared
+- Line 3: identifier 'i' is not declared
+- Line 3: expression expected, got ')'
+- Line 3: expression expected, got '{'
+- Line 4: expression expected, got 'int'
+- Line 4: ')' expected after arguments, got 'ID'
+- Line 4: function 'for' is not declared
+- Line 4: identifier 'j' is not declared
+- Line 4: identifier 'j' is not declared
+- Line 4: identifier 'j' is not declared
+- Line 4: identifier 'j' is not declared
+- Line 4: expression expected, got ')'
+- Line 4: expression expected, got '{'
+- Line 5: identifier 'i' is not declared
+- Line 5: identifier 'i' is not declared
+- Line 5: expression expected, got '['
+- Line 5: identifier 'j' is not declared
+- Line 5: expression expected, got ']'
+- Line 5: expression expected, got '='
+- Line 5: identifier 'i' is not declared
+- Line 5: identifier 'j' is not declared
+- Line 7: unexpected token at top level: }
+- Line 8: unexpected token at top level: return
+- Line 8: top-level identifier must be a function call
+- Line 9: unexpected token at top level: }
+- Line 9: unexpected token at top level: ;

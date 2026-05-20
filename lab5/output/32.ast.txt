@@ -1,0 +1,35 @@
+Program
+  FunctionDecl(compute) : float
+    Params
+      Param(a) : float
+      Param(b) : float
+    Block
+      Return
+        BinaryOp(+) : float @t3
+          BinaryOp(*) : float @t1
+            ID(a) : float
+            ID(a) : float
+          BinaryOp(*) : float @t2
+            ID(b) : float
+            ID(b) : float
+  FunctionDecl(main) : int
+    Params
+    Block
+      VarDecl(x) : float
+      VarDecl(y) : float
+      VarDecl(result) : float
+      Assign
+        ID(x) : float
+        FloatLiteral(3.0) : float
+      Assign
+        ID(y) : float
+        FloatLiteral(4.0) : float
+      Assign
+        ID(result) : float
+        FunctionCall(compute) : float
+          ID(x) : float
+          ID(y) : float
+      Return
+        ID(result) : float
+  TopLevelCall
+    FunctionCall(main) : int
