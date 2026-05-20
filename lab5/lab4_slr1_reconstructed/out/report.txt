@@ -1,0 +1,92 @@
+SLR(1) Analysis Table Report
+Start: E
+Augmented: E' -> E
+
+Productions:
+  0: E' -> E
+  1: E -> E + T
+  2: E -> T
+  3: T -> T * F
+  4: T -> F
+  5: F -> ( E )
+  6: F -> id
+
+FIRST/FOLLOW:
+E FIRST={(, id} FOLLOW={#, ), +}
+F FIRST={(, id} FOLLOW={#, ), *, +}
+T FIRST={(, id} FOLLOW={#, ), *, +}
+
+LR(0) Item Sets:
+I0:
+  E' -> . E
+  E -> . E + T
+  E -> . T
+  T -> . T * F
+  T -> . F
+  F -> . ( E )
+  F -> . id
+I1:
+  E' -> E .
+  E -> E . + T
+I2:
+  E -> T .
+  T -> T . * F
+I3:
+  T -> F .
+I4:
+  E -> . E + T
+  E -> . T
+  T -> . T * F
+  T -> . F
+  F -> . ( E )
+  F -> ( . E )
+  F -> . id
+I5:
+  F -> id .
+I6:
+  E -> E + . T
+  T -> . T * F
+  T -> . F
+  F -> . ( E )
+  F -> . id
+I7:
+  T -> T * . F
+  F -> . ( E )
+  F -> . id
+I8:
+  E -> E . + T
+  F -> ( E . )
+I9:
+  E -> E + T .
+  T -> T . * F
+I10:
+  T -> T * F .
+I11:
+  F -> ( E ) .
+
+Transitions:
+  GOTO(I0, E) = I1
+  GOTO(I0, T) = I2
+  GOTO(I0, F) = I3
+  GOTO(I0, () = I4
+  GOTO(I0, id) = I5
+  GOTO(I1, +) = I6
+  GOTO(I2, *) = I7
+  GOTO(I4, E) = I8
+  GOTO(I4, T) = I2
+  GOTO(I4, F) = I3
+  GOTO(I4, () = I4
+  GOTO(I4, id) = I5
+  GOTO(I6, T) = I9
+  GOTO(I6, F) = I3
+  GOTO(I6, () = I4
+  GOTO(I6, id) = I5
+  GOTO(I7, F) = I10
+  GOTO(I7, () = I4
+  GOTO(I7, id) = I5
+  GOTO(I8, +) = I6
+  GOTO(I8, )) = I11
+  GOTO(I9, *) = I7
+
+Conflicts:
+  None

@@ -1,0 +1,2650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>编译原理 1-4 实验综合可视化平台</title>
+  <style>
+    :root {
+      --bg: #eef4ff;
+      --card: rgba(255, 255, 255, 0.92);
+      --text: #183153;
+      --muted: #58708f;
+      --primary: #315bea;
+      --primary-2: #6f8eff;
+      --accent: #18b6a5;
+      --danger: #e04f5f;
+      --warning: #f59e0b;
+      --border: rgba(49, 91, 234, 0.14);
+      --shadow: 0 18px 42px rgba(31, 63, 130, 0.13);
+      --terminal: #181c20;
+      --terminal-text: #b6e1a3;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(111, 142, 255, 0.22), transparent 28%),
+        radial-gradient(circle at 100% 20%, rgba(24, 182, 165, 0.13), transparent 18%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+      min-height: 100vh;
+    }
+
+    .container {
+      width: min(1280px, calc(100% - 32px));
+      margin: 24px auto 40px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(49, 91, 234, 0.95), rgba(86, 204, 242, 0.92));
+      border-radius: 26px;
+      color: white;
+      padding: 30px 34px;
+      box-shadow: 0 20px 45px rgba(49, 91, 234, 0.22);
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -80px;
+      top: -80px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.16);
+    }
+
+    .title {
+      margin: 0 0 8px;
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-sub {
+      margin: 0;
+      font-size: 16px;
+      opacity: 0.92;
+    }
+
+    .main-tabs {
+      display: flex;
+      gap: 12px;
+      margin: 18px 0 22px;
+      flex-wrap: wrap;
+    }
+
+    .main-tab,
+    .tab-btn,
+    .btn {
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    .main-tab:hover,
+    .tab-btn:hover,
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .main-tab {
+      border: none;
+      border-radius: 999px;
+      padding: 13px 22px;
+      background: rgba(49, 91, 234, 0.08);
+      color: var(--primary);
+      font-weight: 850;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .main-tab.active {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+      color: white;
+      box-shadow: 0 8px 20px rgba(49, 91, 234, 0.22);
+    }
+
+    .module { display: none; }
+    .module.active { display: block; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.12fr 0.88fr;
+      gap: 22px;
+    }
+
+    .layout.equal {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 24px;
+    }
+
+    .sub {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .tab-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 11px 16px;
+      background: rgba(49, 91, 234, 0.08);
+      color: var(--primary);
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(49, 91, 234, 0.22);
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .tuple-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .tuple-item {
+      background: rgba(49, 91, 234, 0.05);
+      border: 1px solid rgba(49, 91, 234, 0.1);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .tuple-item strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--primary);
+    }
+
+    .mono {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .input {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid rgba(49, 91, 234, 0.2);
+      border-radius: 10px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    .input:focus {
+      border-color: rgba(49, 91, 234, 0.55);
+      box-shadow: 0 0 0 4px rgba(49, 91, 234, 0.08);
+    }
+
+    textarea.input {
+      resize: vertical;
+      min-height: 110px;
+      font-family: Consolas, "Courier New", monospace;
+      line-height: 1.6;
+    }
+
+    .code-area {
+      min-height: 440px !important;
+      font-size: 15px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .actions.three {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 780;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, #4b61ea 0%, #7a90ff 100%);
+      box-shadow: 0 10px 24px rgba(49, 91, 234, 0.2);
+    }
+
+    .btn.secondary {
+      background: linear-gradient(135deg, #49b3a6 0%, #7ccfc3 100%);
+      box-shadow: 0 10px 24px rgba(24, 182, 165, 0.18);
+    }
+
+    .btn.danger {
+      background: linear-gradient(135deg, #e04f5f 0%, #ff7b88 100%);
+      box-shadow: 0 10px 24px rgba(224, 79, 95, 0.18);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .terminal {
+      margin-top: 14px;
+      background: var(--terminal);
+      color: var(--terminal-text);
+      border-radius: 14px;
+      padding: 14px;
+      min-height: 280px;
+      overflow: auto;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    .terminal.small {
+      min-height: 145px;
+      max-height: 260px;
+    }
+
+    .table-wrap {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .table-scroll {
+      overflow: auto;
+      max-height: 540px;
+      border-radius: 12px;
+      border: 1px solid rgba(49, 91, 234, 0.1);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      text-align: center;
+      padding: 10px;
+      border-bottom: 1px solid rgba(49, 91, 234, 0.08);
+      font-size: 14px;
+    }
+
+    th {
+      color: var(--primary);
+      font-weight: 850;
+      background: rgba(49, 91, 234, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: rgba(49, 91, 234, 0.025); }
+
+    .msg {
+      margin-top: 8px;
+      color: #0d7d70;
+      font-size: 13px;
+      min-height: 20px;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(24, 182, 165, 0.1);
+      color: #0d7d70;
+      border: 1px solid rgba(24, 182, 165, 0.2);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-weight: 750;
+      font-size: 13px;
+    }
+
+    .notice {
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      background: rgba(245, 158, 11, 0.08);
+      color: #8a5b00;
+      line-height: 1.7;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+
+    .mini-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .mini-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 9px 13px;
+      color: var(--primary);
+      background: rgba(49, 91, 234, 0.08);
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .mini-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .mini-btn.active {
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow: 0 8px 18px rgba(49, 91, 234, 0.18);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 12px 0 16px;
+    }
+
+    .kpi {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(49, 91, 234, 0.06);
+      border: 1px solid rgba(49, 91, 234, 0.11);
+    }
+
+    .kpi strong {
+      display: block;
+      color: var(--primary);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .kpi span {
+      font-size: 25px;
+      font-weight: 900;
+    }
+
+    .states-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .state-card {
+      background: #fff;
+      border: 1px solid rgba(49, 91, 234, 0.13);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 10px 24px rgba(31, 63, 130, 0.07);
+    }
+
+    .state-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      background: linear-gradient(135deg, rgba(49, 91, 234, 0.11), rgba(24, 182, 165, 0.08));
+      border-bottom: 1px solid rgba(49, 91, 234, 0.1);
+    }
+
+    .state-id {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--primary);
+    }
+
+    .state-tag {
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 850;
+      background: rgba(24, 182, 165, 0.11);
+      color: #0d7d70;
+    }
+
+    .state-tag.conflict {
+      background: rgba(224, 79, 95, 0.11);
+      color: var(--danger);
+    }
+
+    .state-body {
+      padding: 12px 14px 14px;
+    }
+
+    .state-body h3 {
+      margin: 7px 0 6px;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .kernel-line { color: #233b88; font-weight: 800; }
+    .closure-line { color: #26384f; }
+    .goto-line { color: #0d7d70; font-weight: 750; }
+    .conflict-line { color: var(--danger); font-weight: 900; }
+
+    .graph-wrap {
+      background: #fff;
+      border: 1px solid rgba(49, 91, 234, 0.12);
+      border-radius: 18px;
+      overflow: auto;
+      padding: 12px;
+      min-height: 420px;
+    }
+
+    .lr0-code-area {
+      min-height: 220px !important;
+    }
+
+    svg text {
+      font-family: Consolas, "Courier New", monospace;
+      fill: var(--text);
+    }
+
+    .node-rect {
+      fill: #ffffff;
+      stroke: rgba(49, 91, 234, 0.55);
+      stroke-width: 1.4;
+      filter: drop-shadow(0 6px 10px rgba(31, 63, 130, 0.12));
+    }
+
+    .edge-line {
+      stroke: rgba(24, 36, 58, 0.56);
+      stroke-width: 1.3;
+      fill: none;
+      marker-end: url(#arrow);
+    }
+
+    .edge-label {
+      font-size: 13px;
+      font-weight: 900;
+      fill: var(--primary);
+    }
+
+    @media (max-width: 980px) {
+      .layout,
+      .layout.equal,
+      .tuple-grid,
+      .kpi-grid,
+      .states-grid,
+      .actions,
+      .actions.three,
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+      .title { font-size: 30px; }
+      .container { width: min(100% - 20px, 1280px); }
+      .hero { padding: 24px; }
+    }
+
+    .section-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 850;
+      color: #0d7d70;
+      background: rgba(24, 182, 165, 0.11);
+      border: 1px solid rgba(24, 182, 165, 0.2);
+    }
+
+    .pill.warn {
+      color: #8a5b00;
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+
+    .pill.danger {
+      color: var(--danger);
+      background: rgba(224, 79, 95, 0.1);
+      border-color: rgba(224, 79, 95, 0.2);
+    }
+
+    .parse-ok {
+      color: #0d7d70;
+      font-weight: 900;
+    }
+
+    .parse-bad {
+      color: var(--danger);
+      font-weight: 900;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <h1 class="title">编译原理 1-4 实验综合可视化平台</h1>
+      <p class="hero-sub">Compiler Design Lab 1 + Lab 2 + Lab 3 + Lab 4 · DFA、词法分析、LR(0) 项目集规范族、SLR(1) 分析表与语法分析过程</p>
+    </header>
+
+    <div class="main-tabs">
+      <button class="main-tab active" data-module="dfa" type="button">DFA 可视化实验</button>
+      <button class="main-tab" data-module="scanner" type="button">类 C 词法分析器</button>
+      <button class="main-tab" data-module="lr0" type="button">LR(0) 项目集规范族</button>
+      <button class="main-tab" data-module="slr1" type="button">SLR(1) 分析表</button>
+      <button class="main-tab" data-module="intro" type="button">实验说明与报告亮点</button>
+    </div>
+
+    <section id="module-dfa" class="module active">
+      <div class="layout">
+        <section class="card">
+          <h2>实验案例</h2>
+          <p class="sub">可切换内置案例，或填写自定义五元组并立即启用。</p>
+
+          <div class="tabs">
+            <button class="tab-btn active" data-target="basic" type="button">以 ab 结尾</button>
+            <button class="tab-btn" data-target="to" type="button">包含 to</button>
+            <button class="tab-btn" data-target="custom" type="button">自定义 DFA</button>
+          </div>
+
+          <div id="panel-basic" class="panel active">
+            <div class="tuple-grid">
+              <div class="tuple-item"><strong>Q</strong><div class="mono">{ q0, q1, q2 }</div></div>
+              <div class="tuple-item"><strong>Sigma</strong><div class="mono">{ a, b }</div></div>
+              <div class="tuple-item"><strong>q0</strong><div class="mono">q0</div></div>
+              <div class="tuple-item"><strong>F</strong><div class="mono">{ q2 }</div></div>
+            </div>
+            <div class="tuple-item" style="margin-top: 12px;">
+              <strong>delta</strong>
+              <div class="mono">q0 a q1
+q0 b q0
+q1 a q1
+q1 b q2
+q2 a q1
+q2 b q0</div>
+            </div>
+          </div>
+
+          <div id="panel-to" class="panel">
+            <div class="tuple-grid">
+              <div class="tuple-item"><strong>Q</strong><div class="mono">{ q0, q1, q2 }</div></div>
+              <div class="tuple-item"><strong>Sigma</strong><div class="mono">{ t, o, a, b }</div></div>
+              <div class="tuple-item"><strong>q0</strong><div class="mono">q0</div></div>
+              <div class="tuple-item"><strong>F</strong><div class="mono">{ q2 }</div></div>
+            </div>
+            <div class="tuple-item" style="margin-top: 12px;">
+              <strong>delta</strong>
+              <div class="mono">q0 t q1
+q0 o q0
+q0 a q0
+q0 b q0
+q1 o q2
+q1 t q1
+q1 a q0
+q1 b q0
+q2 t q2
+q2 o q2
+q2 a q2
+q2 b q2</div>
+            </div>
+          </div>
+
+          <div id="panel-custom" class="panel">
+            <div class="tuple-grid">
+              <div class="tuple-item">
+                <strong>Q（空格分隔）</strong>
+                <input id="custom-states" class="input" type="text" placeholder="q0 q1 q2" autocomplete="off" />
+              </div>
+              <div class="tuple-item">
+                <strong>Sigma（空格分隔）</strong>
+                <input id="custom-alphabet" class="input" type="text" placeholder="a b" autocomplete="off" />
+              </div>
+              <div class="tuple-item">
+                <strong>q0</strong>
+                <input id="custom-start" class="input" type="text" placeholder="q0" autocomplete="off" />
+              </div>
+              <div class="tuple-item">
+                <strong>F（空格分隔）</strong>
+                <input id="custom-accept" class="input" type="text" placeholder="q2" autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="tuple-item" style="margin-top: 12px;">
+              <strong>delta（每行: 当前状态 输入符号 目标状态）</strong>
+              <textarea id="custom-trans" class="input" placeholder="q0 a q1
+q0 b q0
+q1 a q1
+q1 b q2
+q2 a q1
+q2 b q0"></textarea>
+            </div>
+
+            <div class="actions">
+              <button class="btn secondary" id="btn-save-custom" type="button">保存并启用</button>
+              <button class="btn" id="btn-fill-template" type="button">按 Q 和 Sigma 生成模板</button>
+            </div>
+            <div id="custom-msg" class="msg"></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>运行区</h2>
+          <p class="sub">输入字符串判定，枚举长度小于等于 N 的合法字符串，或显示当前转移表。</p>
+
+          <div class="row">
+            <input id="input-str" class="input" type="text" placeholder="输入待判定字符串" autocomplete="off" />
+            <input id="input-n" class="input" type="number" min="1" max="8" value="4" />
+          </div>
+
+          <div class="actions">
+            <button class="btn" id="btn-judge" type="button">判定输入字符串</button>
+            <button class="btn secondary" id="btn-enum" type="button">输出合法字符串</button>
+            <button class="btn" id="btn-check" type="button">检查 DFA 合法性</button>
+            <button class="btn secondary" id="btn-table" type="button">显示状态转移表</button>
+          </div>
+
+          <div class="terminal" id="terminal">$ 当前案例: 以 ab 结尾
+$ 可执行: 判定 / 枚举 / 检查 / 显示转移表</div>
+          <div class="table-wrap" id="table-wrap"></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="module-scanner" class="module">
+      <div class="layout equal">
+        <section class="card">
+          <h2>源代码输入</h2>
+          <p class="sub">输入类 C 语言代码，点击开始分析，生成 token 序列。该模块用于展示 scanner 对源程序字符流的处理过程。</p>
+
+          <textarea id="codeInput" class="input code-area" spellcheck="false" placeholder="在这里输入类 C 代码，例如：while(true) {int a=0;}"></textarea>
+
+          <div class="actions three">
+            <button class="btn secondary" onclick="loadScannerExample()" type="button">加载示例</button>
+            <button class="btn" onclick="runScanner()" type="button">开始词法分析</button>
+            <button class="btn danger" onclick="clearScanner()" type="button">清空</button>
+          </div>
+
+          <div class="notice">
+            提示：本 UI 版本会识别关键字、ID、INT、FLO、ADD、MUL、ROP、ASG、括号、逗号、分号，以及 ++、--。它还支持 // 单行注释和词法错误定位。
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Token 输出</h2>
+          <p class="sub">显示 token 类型、属性值、行号和列号，方便作为后续语法分析阶段的输入。</p>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>序号</th>
+                  <th>Token 类型</th>
+                  <th>属性值</th>
+                  <th>行号</th>
+                  <th>列号</th>
+                </tr>
+              </thead>
+              <tbody id="tokenTable"></tbody>
+            </table>
+          </div>
+
+          <div class="row">
+            <div>
+              <h2 style="margin-top: 18px; font-size: 20px;">错误信息</h2>
+              <div class="terminal small" id="scannerErrors">$ 暂无错误</div>
+            </div>
+
+            <div>
+              <h2 style="margin-top: 18px; font-size: 20px;">Token 统计</h2>
+              <div class="terminal small" id="scannerStats">$ 暂无统计</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+
+    <section id="module-lr0" class="module">
+      <div class="layout">
+        <section class="card">
+          <h2>实验三：LR(0) 文法输入</h2>
+          <p class="sub">输入扩展巴科斯范式文法，每行一个产生式，候选式用 | 分隔。程序会自动增广文法，并生成 Closure、Goto、项目集规范族和冲突检测结果。</p>
+
+          <textarea id="lr0GrammarInput" class="input lr0-code-area" spellcheck="false"></textarea>
+
+          <div class="actions three">
+            <button class="btn secondary" onclick="lr0LoadDefaultGrammar()" type="button">加载表达式文法</button>
+            <button class="btn" onclick="lr0Build()" type="button">生成项目集规范族</button>
+            <button class="btn danger" onclick="lr0Clear()" type="button">清空结果</button>
+          </div>
+
+          <div class="notice">
+            示例文法：E -&gt; E + T | T，T -&gt; T * F | F，F -&gt; ( E ) | id | num。该文法会生成 13 个状态，并在 I2、I10 检测到移进-归约冲突。
+          </div>
+
+          <div class="terminal small" id="lr0Terminal">$ 等待生成 LR(0) 项目集规范族</div>
+
+          <h2 style="margin-top:18px;font-size:20px;">实验二 Token 串联</h2>
+          <p class="sub">输入表达式源程序，模拟 scanner 输出 id、num、+、*、(、) 作为实验三语法分析输入。</p>
+          <textarea id="lr0SourceInput" class="input" spellcheck="false" style="min-height:110px;"></textarea>
+          <div class="actions">
+            <button class="btn secondary" onclick="lr0LoadSource()" type="button">加载源程序样例</button>
+            <button class="btn" onclick="lr0ScanSource()" type="button">生成 Token 串</button>
+          </div>
+          <div class="terminal small" id="lr0TokenOutput">$ 暂无 token 输出</div>
+        </section>
+
+        <section class="card">
+          <h2>LR(0) 运行结果</h2>
+          <p class="sub">显示产生式数量、状态数量、转移数量、冲突数量，并可切换查看项目集、转移表、状态图和 JSON。</p>
+
+          <div class="kpi-grid">
+            <div class="kpi"><strong>产生式数</strong><span id="lr0KpiProductions">0</span></div>
+            <div class="kpi"><strong>状态数</strong><span id="lr0KpiStates">0</span></div>
+            <div class="kpi"><strong>转移数</strong><span id="lr0KpiTransitions">0</span></div>
+            <div class="kpi"><strong>冲突数</strong><span id="lr0KpiConflicts">0</span></div>
+          </div>
+
+          <div class="mini-actions">
+            <button class="mini-btn active" data-lr0-view="states" type="button">项目集</button>
+            <button class="mini-btn" data-lr0-view="table" type="button">转移表</button>
+            <button class="mini-btn" data-lr0-view="graph" type="button">状态图</button>
+            <button class="mini-btn" data-lr0-view="json" type="button">JSON</button>
+          </div>
+
+          <div id="lr0ViewStates" class="lr0-view">
+            <div id="lr0StatesOutput" class="states-grid"></div>
+          </div>
+
+          <div id="lr0ViewTable" class="lr0-view" style="display:none;">
+            <div id="lr0GotoTable" class="table-scroll"></div>
+          </div>
+
+          <div id="lr0ViewGraph" class="lr0-view" style="display:none;">
+            <div id="lr0GraphOutput" class="graph-wrap"></div>
+          </div>
+
+          <div id="lr0ViewJson" class="lr0-view" style="display:none;">
+            <div id="lr0JsonOutput" class="terminal"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+
+    <section id="module-slr1" class="module">
+      <div class="layout">
+        <section class="card">
+          <div class="section-title-row">
+            <h2>实验四：SLR(1) 分析表生成</h2>
+            <span class="pill">必做 + 选做拓展</span>
+          </div>
+          <p class="sub">在实验三 LR(0) 项目集规范族基础上，进一步计算 FIRST/FOLLOW 集，并根据 FOLLOW 集生成 SLR(1) 的 ACTION / GOTO 表，同时支持输入串分析过程展示。</p>
+
+          <textarea id="slr1GrammarInput" class="input lr0-code-area" spellcheck="false"></textarea>
+
+          <div class="row">
+            <input id="slr1ParseInput" class="input" type="text" value="id + id * id" placeholder="输入待分析 token 串，例如 id + id * id" autocomplete="off" />
+            <input id="slr1SourceInput" class="input" type="text" value="x + y * z" placeholder="输入表达式源码，自动转 token 串" autocomplete="off" />
+          </div>
+
+          <div class="actions three">
+            <button class="btn secondary" onclick="slr1LoadDefaultGrammar()" type="button">加载 SLR(1) 文法</button>
+            <button class="btn" onclick="slr1Build()" type="button">生成 ACTION/GOTO</button>
+            <button class="btn secondary" onclick="slr1ScanSourceToTokens()" type="button">源码转 Token 串</button>
+            <button class="btn" onclick="slr1ParseInputString()" type="button">分析输入串</button>
+            <button class="btn secondary" onclick="slr1ExportJsonToView()" type="button">导出 JSON</button>
+            <button class="btn danger" onclick="slr1Clear()" type="button">清空结果</button>
+          </div>
+
+          <div class="notice">
+            必做逻辑：完整项目 A -&gt; α · 不再像 LR(0) 一样在所有终结符上归约，而是只在 FOLLOW(A) 中的符号上填写 r 编号；若出现 E' -&gt; E · 且当前输入为 #，则填写 acc。
+          </div>
+
+          <div class="terminal small" id="slr1Terminal">$ 等待生成 SLR(1) 分析表</div>
+
+          <h2 style="margin-top:18px;font-size:20px;">选做：Flex / Bison 对比说明</h2>
+          <p class="sub">该页面展示手写 SLR(1) 表生成过程；选做部分可在鲲鹏服务器中使用 flex 与 bison 生成自动词法/语法分析器，并与手写表进行对比。</p>
+          <div class="terminal small" id="slr1OptionalTerminal">$ 选做运行命令
+cd optional/flex_bison
+make clean && make
+echo "id + id * id" | ./expr_parser
+$ 预期输出: 语法分析成功</div>
+        </section>
+
+        <section class="card">
+          <div class="section-title-row">
+            <h2>SLR(1) 运行结果</h2>
+            <span id="slr1ConflictBadge" class="pill warn">未构造</span>
+          </div>
+          <p class="sub">显示产生式数量、状态数量、ACTION 项数量、冲突数量，并可切换查看项目集、FIRST/FOLLOW、分析表、分析过程和 JSON。</p>
+
+          <div class="kpi-grid">
+            <div class="kpi"><strong>产生式数</strong><span id="slr1KpiProductions">0</span></div>
+            <div class="kpi"><strong>状态数</strong><span id="slr1KpiStates">0</span></div>
+            <div class="kpi"><strong>ACTION 项</strong><span id="slr1KpiActions">0</span></div>
+            <div class="kpi"><strong>冲突数</strong><span id="slr1KpiConflicts">0</span></div>
+          </div>
+
+          <div class="mini-actions">
+            <button class="mini-btn active" data-slr1-view="states" type="button">项目集</button>
+            <button class="mini-btn" data-slr1-view="follow" type="button">FIRST/FOLLOW</button>
+            <button class="mini-btn" data-slr1-view="table" type="button">ACTION/GOTO</button>
+            <button class="mini-btn" data-slr1-view="parse" type="button">分析过程</button>
+            <button class="mini-btn" data-slr1-view="json" type="button">JSON</button>
+          </div>
+
+          <div id="slr1ViewStates" class="slr1-view">
+            <div id="slr1StatesOutput" class="states-grid"></div>
+          </div>
+
+          <div id="slr1ViewFollow" class="slr1-view" style="display:none;">
+            <div id="slr1FollowOutput" class="table-scroll"></div>
+          </div>
+
+          <div id="slr1ViewTable" class="slr1-view" style="display:none;">
+            <div id="slr1TableOutput" class="table-scroll"></div>
+          </div>
+
+          <div id="slr1ViewParse" class="slr1-view" style="display:none;">
+            <div id="slr1ParseOutput" class="table-scroll"></div>
+          </div>
+
+          <div id="slr1ViewJson" class="slr1-view" style="display:none;">
+            <div id="slr1JsonOutput" class="terminal"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="module-intro" class="module">
+      <section class="card">
+        <h2>实验说明与报告亮点</h2>
+        <p class="sub">本平台将第一次实验的 DFA 自动机、第二次实验的类 C 语言词法分析器、第三次实验的 LR(0) 项目集规范族构造、第四次实验的 SLR(1) 分析表生成融合，展示从字符识别、Token 扫描、项目集构造到 ACTION/GOTO 表和输入串分析的完整过程。</p>
+
+        <div class="badge-row">
+          <span class="badge">DFA 五元组</span>
+          <span class="badge">字符串判定</span>
+          <span class="badge">合法串枚举</span>
+          <span class="badge">Token 扫描</span>
+          <span class="badge">错误定位</span>
+          <span class="badge">统计分析</span>
+          <span class="badge">LR(0) 项目集</span>
+          <span class="badge">Closure / Goto</span>
+          <span class="badge">FIRST / FOLLOW</span>
+          <span class="badge">SLR(1) ACTION/GOTO</span>
+          <span class="badge">输入串分析 acc</span>
+          <span class="badge">Flex / Bison 选做</span>
+          <span class="badge">冲突检测</span>
+        </div>
+
+        <div class="tuple-grid" style="margin-top: 18px;">
+          <div class="tuple-item">
+            <strong>模块一：DFA 可视化实验</strong>
+            <div class="mono">用于展示确定有限自动机的五元组、状态转移、字符串判定和合法字符串枚举。支持内置案例和自定义 DFA。</div>
+          </div>
+
+          <div class="tuple-item">
+            <strong>模块二：类 C 词法分析器</strong>
+            <div class="mono">用于扫描类 C 语言源代码，识别关键字、标识符、整数、实数、运算符、界符，并输出 token 序列。</div>
+          </div>
+
+          <div class="tuple-item">
+            <strong>DFA 与 scanner 的关系</strong>
+            <div class="mono">词法分析器本质上可以看作多个 DFA 的组合。每类 token 都可以由正则式描述，再进一步转换为 NFA/DFA 进行识别。</div>
+          </div>
+
+          <div class="tuple-item">
+            <strong>模块三：LR(0) 项目集规范族</strong>
+            <div class="mono">用于读取表达式文法，自动增广文法，计算 Closure 闭包和 Goto 转移，生成 LR(0) 项目集规范族，并检测移进-归约冲突或归约-归约冲突。</div>
+          </div>
+
+          <div class="tuple-item">
+            <strong>高分拓展点</strong>
+            <div class="mono">本系统加入了自定义 DFA、状态转移表、token 表格展示、行列号定位、词法错误恢复、token 数量统计、LR(0) 状态图、SLR(1) ACTION/GOTO 表、输入串分析过程、JSON 导出和 Web 可视化页面。</div>
+          </div>
+
+          <div class="tuple-item">
+            <strong>模块四：SLR(1) 分析表与输入串分析</strong>
+            <div class="mono">用于在 LR(0) 项目集规范族基础上计算 FIRST/FOLLOW 集，生成 SLR(1) ACTION/GOTO 表，并展示 id + id * id 的移进、归约、acc 成功过程。</div>
+          </div>
+        </div>
+
+        <div class="notice">
+          报告建议写法：本实验在命令行程序基础上进一步实现了 Web 综合可视化平台，使 DFA 理论实验、类 C 语言词法分析器、LR(0) 项目集规范族构造和 SLR(1) 语法分析表生成形成串联，体现了正则式、自动机、词法分析和语法分析之间的联系。
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <script>
+    // =============================
+    // 主模块切换
+    // =============================
+    document.querySelectorAll(".main-tab").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.module;
+
+        document.querySelectorAll(".main-tab").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        document.querySelectorAll(".module").forEach((m) => m.classList.remove("active"));
+        document.getElementById(`module-${target}`).classList.add("active");
+      });
+    });
+
+    // =============================
+    // DFA 模块
+    // =============================
+    const builtinDfa = {
+      basic: {
+        alphabet: ["a", "b"],
+        states: ["q0", "q1", "q2"],
+        start: "q0",
+        accept: ["q2"],
+        transitions: {
+          "q0,a": "q1", "q0,b": "q0",
+          "q1,a": "q1", "q1,b": "q2",
+          "q2,a": "q1", "q2,b": "q0"
+        }
+      },
+      to: {
+        alphabet: ["t", "o", "a", "b"],
+        states: ["q0", "q1", "q2"],
+        start: "q0",
+        accept: ["q2"],
+        transitions: {
+          "q0,t": "q1", "q0,o": "q0", "q0,a": "q0", "q0,b": "q0",
+          "q1,o": "q2", "q1,t": "q1", "q1,a": "q0", "q1,b": "q0",
+          "q2,t": "q2", "q2,o": "q2", "q2,a": "q2", "q2,b": "q2"
+        }
+      }
+    };
+
+    let customDfa = null;
+    let currentKey = "basic";
+
+    const terminal = document.getElementById("terminal");
+    const tableWrap = document.getElementById("table-wrap");
+    const panels = {
+      basic: document.getElementById("panel-basic"),
+      to: document.getElementById("panel-to"),
+      custom: document.getElementById("panel-custom")
+    };
+
+    function getCurrentDfa() {
+      if (currentKey === "custom") return customDfa;
+      return builtinDfa[currentKey];
+    }
+
+    function setTerminal(text) {
+      terminal.textContent = text;
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function parseSpaceList(raw) {
+      return raw.trim().split(/\s+/).filter(Boolean);
+    }
+
+    function validateDfa(dfa) {
+      if (!dfa) return "未加载 DFA";
+      if (!dfa.alphabet.length) return "字符集不能为空";
+      if (!dfa.states.length) return "状态集不能为空";
+      if (!dfa.start) return "开始状态不能为空";
+      if (!dfa.states.includes(dfa.start)) return "开始状态不在状态集中";
+      if (!dfa.accept.length) return "接受状态集不能为空";
+
+      for (const f of dfa.accept) {
+        if (!dfa.states.includes(f)) return `接受状态 ${f} 不在状态集中`;
+      }
+
+      for (const s of dfa.states) {
+        for (const c of dfa.alphabet) {
+          const key = `${s},${c}`;
+          const target = dfa.transitions[key];
+          if (!target) return `缺少转移 delta(${s}, ${c})`;
+          if (!dfa.states.includes(target)) return `转移目标状态 ${target} 不在状态集中`;
+        }
+      }
+
+      return "";
+    }
+
+    function runDfa(dfa, input, showProcess) {
+      let current = dfa.start;
+      const lines = [];
+
+      if (showProcess) {
+        lines.push(`$ 输入字符串: ${input}`);
+        lines.push(`$ 开始状态: ${current}`);
+      }
+
+      for (const ch of input) {
+        if (!dfa.alphabet.includes(ch)) {
+          lines.push(`$ 输入字符 ${ch} 不在字符集中`);
+          return { accepted: false, lines };
+        }
+
+        const key = `${current},${ch}`;
+        const next = dfa.transitions[key];
+        if (!next) {
+          lines.push(`$ 不存在转移 delta(${current}, ${ch})`);
+          return { accepted: false, lines };
+        }
+
+        if (showProcess) lines.push(`$ 读入 ${ch}: ${current} -> ${next}`);
+        current = next;
+      }
+
+      const accepted = dfa.accept.includes(current);
+      if (showProcess) {
+        lines.push(`$ 结束状态: ${current}`);
+        lines.push(accepted ? "$ 结果: 属于该 DFA 语言" : "$ 结果: 不属于该 DFA 语言");
+      }
+
+      return { accepted, lines };
+    }
+
+    function renderTable(dfa) {
+      let html = "<div class='table-scroll'><table><thead><tr><th>当前状态</th>";
+      for (const c of dfa.alphabet) html += `<th>输入 ${c}</th>`;
+      html += "</tr></thead><tbody>";
+
+      for (const s of dfa.states) {
+        html += `<tr><td>${s}</td>`;
+        for (const c of dfa.alphabet) {
+          const key = `${s},${c}`;
+          html += `<td>${dfa.transitions[key] || "-"}</td>`;
+        }
+        html += "</tr>";
+      }
+
+      html += "</tbody></table></div>";
+      tableWrap.innerHTML = html;
+      tableWrap.style.display = "block";
+    }
+
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.target;
+        currentKey = target;
+
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        Object.values(panels).forEach((p) => p.classList.remove("active"));
+        panels[target].classList.add("active");
+        tableWrap.style.display = "none";
+
+        if (target === "custom" && !customDfa) {
+          setTerminal("$ 当前案例: 自定义 DFA\n$ 请填写五元组和转移表，点击 保存并启用");
+        } else {
+          setTerminal(`$ 当前案例: ${target === "basic" ? "以 ab 结尾" : target === "to" ? "包含 to" : "自定义 DFA"}\n$ 可执行: 判定 / 枚举 / 检查 / 显示转移表`);
+        }
+      });
+    });
+
+    document.getElementById("btn-fill-template").addEventListener("click", () => {
+      const states = parseSpaceList(document.getElementById("custom-states").value);
+      const alphabet = parseSpaceList(document.getElementById("custom-alphabet").value);
+
+      if (!states.length || !alphabet.length) {
+        document.getElementById("custom-msg").textContent = "请先填写状态集和字符集";
+        return;
+      }
+
+      const lines = [];
+      for (const s of states) {
+        for (const c of alphabet) lines.push(`${s} ${c} ${s}`);
+      }
+
+      document.getElementById("custom-trans").value = lines.join("\n");
+      document.getElementById("custom-msg").textContent = "模板已生成，请按需要修改目标状态";
+    });
+
+    document.getElementById("btn-save-custom").addEventListener("click", () => {
+      const states = parseSpaceList(document.getElementById("custom-states").value);
+      const alphabet = parseSpaceList(document.getElementById("custom-alphabet").value);
+      const start = document.getElementById("custom-start").value.trim();
+      const accept = parseSpaceList(document.getElementById("custom-accept").value);
+      const lines = document.getElementById("custom-trans").value.split("\n");
+
+      const transitions = {};
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/).filter(Boolean);
+        if (!parts.length) continue;
+        if (parts.length !== 3) {
+          document.getElementById("custom-msg").textContent = "转移表每行必须是: 状态 字符 目标状态";
+          return;
+        }
+        transitions[`${parts[0]},${parts[1]}`] = parts[2];
+      }
+
+      const draft = { states, alphabet, start, accept, transitions };
+      const err = validateDfa(draft);
+      if (err) {
+        document.getElementById("custom-msg").textContent = `保存失败: ${err}`;
+        return;
+      }
+
+      customDfa = draft;
+      currentKey = "custom";
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelector('.tab-btn[data-target="custom"]').classList.add("active");
+      Object.values(panels).forEach((p) => p.classList.remove("active"));
+      panels.custom.classList.add("active");
+      tableWrap.style.display = "none";
+
+      document.getElementById("custom-msg").textContent = "保存成功，当前已启用自定义 DFA";
+      setTerminal("$ 自定义 DFA 已启用\n$ 可执行: 判定 / 枚举 / 检查 / 显示转移表");
+    });
+
+    document.getElementById("btn-check").addEventListener("click", () => {
+      const dfa = getCurrentDfa();
+      const err = validateDfa(dfa);
+      setTerminal(err ? `$ DFA 检查失败\n$ ${err}` : "$ DFA 检查通过\n$ 开始状态合法\n$ 接受状态集合法\n$ 转移表完整");
+    });
+
+    document.getElementById("btn-judge").addEventListener("click", () => {
+      const dfa = getCurrentDfa();
+      if (!dfa) {
+        setTerminal("$ 当前是自定义模式，但还未保存自定义 DFA");
+        return;
+      }
+
+      const err = validateDfa(dfa);
+      if (err) {
+        setTerminal(`$ 当前 DFA 不合法\n$ ${err}`);
+        return;
+      }
+
+      const input = document.getElementById("input-str").value;
+      if (input.length === 0) {
+        setTerminal("$ 请输入待判定字符串");
+        return;
+      }
+
+      const result = runDfa(dfa, input, true);
+      setTerminal(result.lines.join("\n"));
+    });
+
+    document.getElementById("btn-enum").addEventListener("click", () => {
+      const dfa = getCurrentDfa();
+      if (!dfa) {
+        setTerminal("$ 当前是自定义模式，但还未保存自定义 DFA");
+        return;
+      }
+
+      const err = validateDfa(dfa);
+      if (err) {
+        setTerminal(`$ 当前 DFA 不合法\n$ ${err}`);
+        return;
+      }
+
+      const n = Number.parseInt(document.getElementById("input-n").value, 10);
+      if (Number.isNaN(n) || n < 1 || n > 8) {
+        setTerminal("$ 请输入 1 到 8 之间的最大长度 N");
+        return;
+      }
+
+      const result = [];
+      function dfs(str, state) {
+        if (str.length > n) return;
+        if (str.length > 0 && dfa.accept.includes(state)) result.push(str);
+        if (str.length === n) return;
+        for (const c of dfa.alphabet) {
+          const next = dfa.transitions[`${state},${c}`];
+          if (next) dfs(str + c, next);
+        }
+      }
+
+      dfs("", dfa.start);
+      const unique = Array.from(new Set(result));
+      unique.sort((a, b) => (a.length === b.length ? a.localeCompare(b) : a.length - b.length));
+
+      if (!unique.length) setTerminal(`$ 长度 <= ${n} 的合法字符串\n$ (无)`);
+      else setTerminal(`$ 长度 <= ${n} 的合法字符串\n${unique.map((s) => `$ ${s}`).join("\n")}`);
+    });
+
+    document.getElementById("btn-table").addEventListener("click", () => {
+      const dfa = getCurrentDfa();
+      if (!dfa) {
+        setTerminal("$ 当前是自定义模式，但还未保存自定义 DFA");
+        return;
+      }
+
+      const err = validateDfa(dfa);
+      if (err) {
+        setTerminal(`$ 当前 DFA 不合法\n$ ${err}`);
+        return;
+      }
+
+      renderTable(dfa);
+      setTerminal("$ 已显示当前 DFA 的状态转移表");
+    });
+
+    // =============================
+    // Scanner 模块
+    // =============================
+    const scannerKeywords = {
+      "int": "INT",
+      "float": "FLOAT",
+      "void": "VOID",
+      "if": "IF",
+      "else": "ELSE",
+      "while": "WHILE",
+      "return": "RETURN",
+      "input": "INPUT",
+      "print": "PRINT"
+    };
+
+    function scannerIsLetter(ch) {
+      return /[a-zA-Z_]/.test(ch);
+    }
+
+    function scannerIsLetterOrDigit(ch) {
+      return /[a-zA-Z0-9_]/.test(ch);
+    }
+
+    function scannerIsDigit(ch) {
+      return /[0-9]/.test(ch);
+    }
+
+    function scannerScan(code) {
+      const tokens = [];
+      const errors = [];
+      let i = 0;
+      let line = 1;
+      let col = 1;
+
+      function peek(offset = 0) {
+        return code[i + offset] || "";
+      }
+
+      function advance() {
+        const ch = code[i++];
+        if (ch === "\n") {
+          line++;
+          col = 1;
+        } else {
+          col++;
+        }
+        return ch;
+      }
+
+      function addToken(type, value, startLine, startCol) {
+        tokens.push({ type, value, line: startLine, column: startCol });
+      }
+
+      while (i < code.length) {
+        let ch = peek();
+
+        if (/\s/.test(ch)) {
+          advance();
+          continue;
+        }
+
+        const startLine = line;
+        const startCol = col;
+
+        if (scannerIsLetter(ch)) {
+          let lexeme = "";
+          while (scannerIsLetterOrDigit(peek())) lexeme += advance();
+
+          if (scannerKeywords[lexeme]) addToken(scannerKeywords[lexeme], lexeme, startLine, startCol);
+          else addToken("ID", lexeme, startLine, startCol);
+        }
+
+        else if (scannerIsDigit(ch)) {
+          let lexeme = "";
+          let hasDot = false;
+
+          while (scannerIsDigit(peek())) lexeme += advance();
+
+          if (peek() === ".") {
+            hasDot = true;
+            lexeme += advance();
+
+            if (!scannerIsDigit(peek())) {
+              errors.push(`第 ${startLine} 行，第 ${startCol} 列：非法实数 ${lexeme}`);
+              continue;
+            }
+
+            while (scannerIsDigit(peek())) lexeme += advance();
+          }
+
+          addToken(hasDot ? "FLO" : "INT", lexeme, startLine, startCol);
+        }
+
+        else if (ch === "+") {
+          advance();
+          if (peek() === "+") {
+            advance();
+            addToken("AAA", "++", startLine, startCol);
+          } else {
+            addToken("ADD", "+", startLine, startCol);
+          }
+        }
+
+        else if (ch === "-") {
+          advance();
+          if (peek() === "-") {
+            advance();
+            addToken("AAS", "--", startLine, startCol);
+          } else {
+            addToken("ADD", "-", startLine, startCol);
+          }
+        }
+
+        else if (ch === "*") {
+          advance();
+          addToken("MUL", "*", startLine, startCol);
+        }
+
+        else if (ch === "/") {
+          if (peek(1) === "/") {
+            while (peek() !== "\n" && peek() !== "") advance();
+          } else if (peek(1) === "*") {
+            advance();
+            advance();
+            let closed = false;
+            while (i < code.length) {
+              if (peek() === "*" && peek(1) === "/") {
+                advance();
+                advance();
+                closed = true;
+                break;
+              }
+              advance();
+            }
+            if (!closed) errors.push(`第 ${startLine} 行，第 ${startCol} 列：多行注释未闭合`);
+          } else {
+            advance();
+            addToken("MUL", "/", startLine, startCol);
+          }
+        }
+
+        else if (ch === "<") {
+          advance();
+          if (peek() === "=") {
+            advance();
+            addToken("ROP", "<=", startLine, startCol);
+          } else {
+            addToken("ROP", "<", startLine, startCol);
+          }
+        }
+
+        else if (ch === ">") {
+          advance();
+          if (peek() === "=") {
+            advance();
+            addToken("ROP", ">=", startLine, startCol);
+          } else {
+            addToken("ROP", ">", startLine, startCol);
+          }
+        }
+
+        else if (ch === "=") {
+          advance();
+          if (peek() === "=") {
+            advance();
+            addToken("ROP", "==", startLine, startCol);
+          } else {
+            addToken("ASG", "=", startLine, startCol);
+          }
+        }
+
+        else if (ch === "!") {
+          advance();
+          if (peek() === "=") {
+            advance();
+            addToken("ROP", "!=", startLine, startCol);
+          } else {
+            errors.push(`第 ${startLine} 行，第 ${startCol} 列：非法字符 !，是否想输入 !=`);
+          }
+        }
+
+        else {
+          const delimiterMap = {
+            "(": "LPA",
+            ")": "RPA",
+            "[": "LBK",
+            "]": "RBK",
+            "{": "LBR",
+            "}": "RBR",
+            ",": "CMA",
+            ";": "SCO"
+          };
+
+          if (delimiterMap[ch]) {
+            advance();
+            addToken(delimiterMap[ch], ch, startLine, startCol);
+          } else {
+            errors.push(`第 ${startLine} 行，第 ${startCol} 列：无法识别字符 ${ch}`);
+            advance();
+          }
+        }
+      }
+
+      return { tokens, errors };
+    }
+
+    function runScanner() {
+      const code = document.getElementById("codeInput").value;
+      const result = scannerScan(code);
+      const tbody = document.getElementById("tokenTable");
+      tbody.innerHTML = "";
+
+      result.tokens.forEach((token, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${token.type}</td>
+          <td>${escapeHtml(token.value)}</td>
+          <td>${token.line}</td>
+          <td>${token.column}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (result.errors.length === 0) {
+        document.getElementById("scannerErrors").textContent = "$ 无词法错误";
+      } else {
+        document.getElementById("scannerErrors").textContent = result.errors.map(e => "$ " + e).join("\n");
+      }
+
+      const stat = {};
+      result.tokens.forEach((token) => {
+        stat[token.type] = (stat[token.type] || 0) + 1;
+      });
+
+      let statText = "";
+      Object.keys(stat).sort().forEach((key) => {
+        statText += `$ ${key}: ${stat[key]}\n`;
+      });
+
+      document.getElementById("scannerStats").textContent = statText || "$ 暂无统计";
+    }
+
+    function loadScannerExample() {
+      document.getElementById("codeInput").value =
+`void qsort(int low, int high) {
+    int i;
+    int j;
+    float x;
+    i = low;
+    j = high;
+    while (i < j) {
+        i++;
+        j--;
+    }
+    return;
+}`;
+    }
+
+    function clearScanner() {
+      document.getElementById("codeInput").value = "";
+      document.getElementById("tokenTable").innerHTML = "";
+      document.getElementById("scannerErrors").textContent = "$ 暂无错误";
+      document.getElementById("scannerStats").textContent = "$ 暂无统计";
+    }
+
+
+    // =============================
+    // LR(0) 项目集规范族模块
+    // =============================
+    const LR0_DEFAULT_GRAMMAR = `E -> E + T | T
+T -> T * F | F
+F -> ( E ) | id | num`;
+
+    const LR0_DEFAULT_SOURCE = `x + 3 * y
+(a + b) * 42
+sum + count * (value + 100)
+total * (price + tax)`;
+
+    let lr0LastResult = null;
+
+    document.getElementById("lr0GrammarInput").value = LR0_DEFAULT_GRAMMAR;
+    document.getElementById("lr0SourceInput").value = LR0_DEFAULT_SOURCE;
+
+    document.querySelectorAll(".mini-btn[data-lr0-view]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const view = btn.dataset.lr0View;
+
+        document.querySelectorAll(".mini-btn[data-lr0-view]").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        document.querySelectorAll(".lr0-view").forEach((v) => v.style.display = "none");
+        document.getElementById(`lr0View${lr0Cap(view)}`).style.display = "block";
+      });
+    });
+
+    function lr0Cap(s) {
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
+    function lr0LoadDefaultGrammar() {
+      document.getElementById("lr0GrammarInput").value = LR0_DEFAULT_GRAMMAR;
+      document.getElementById("lr0Terminal").textContent = "$ 已加载表达式文法";
+    }
+
+    function lr0LoadSource() {
+      document.getElementById("lr0SourceInput").value = LR0_DEFAULT_SOURCE;
+    }
+
+    function lr0Clear() {
+      lr0LastResult = null;
+      document.getElementById("lr0StatesOutput").innerHTML = "";
+      document.getElementById("lr0GotoTable").innerHTML = "";
+      document.getElementById("lr0GraphOutput").innerHTML = "";
+      document.getElementById("lr0JsonOutput").textContent = "";
+      document.getElementById("lr0Terminal").textContent = "$ 已清空 LR(0) 结果";
+      lr0SetKpis(0, 0, 0, 0);
+    }
+
+    function lr0ParseGrammar(raw) {
+      const lines = raw.split(/\n+/).map(x => x.trim()).filter(x => x && !x.startsWith("#"));
+      if (!lines.length) throw new Error("文法不能为空");
+
+      const productions = [];
+      let startSymbol = null;
+
+      for (const line of lines) {
+        const idx = line.indexOf("->");
+        if (idx === -1) throw new Error(`产生式缺少 -> ：${line}`);
+
+        const left = line.slice(0, idx).trim();
+        const rightPart = line.slice(idx + 2).trim();
+
+        if (!left || !rightPart) throw new Error(`产生式不完整：${line}`);
+        if (!startSymbol) startSymbol = left;
+
+        const alternatives = rightPart.split("|").map(x => x.trim()).filter(Boolean);
+        for (const alt of alternatives) {
+          const right = alt === "epsilon" || alt === "eps" || alt === "@" ? [] : alt.split(/\s+/).filter(Boolean);
+          productions.push({ left, right });
+        }
+      }
+
+      let augmentedStart = startSymbol + "'";
+      const leftSet = new Set(productions.map(p => p.left));
+      while (leftSet.has(augmentedStart)) augmentedStart += "'";
+
+      return {
+        startSymbol,
+        augmentedStart,
+        productions: [{ left: augmentedStart, right: [startSymbol] }, ...productions]
+      };
+    }
+
+    function lr0ItemKey(item) {
+      return `${item.productionId}@${item.dot}`;
+    }
+
+    function lr0ItemText(grammar, item) {
+      const p = grammar.productions[item.productionId];
+      const parts = [];
+
+      for (let i = 0; i < p.right.length; i++) {
+        if (i === item.dot) parts.push("·");
+        parts.push(p.right[i]);
+      }
+
+      if (item.dot === p.right.length) parts.push("·");
+
+      return `${p.left} -> ${parts.join(" ")}`;
+    }
+
+    function lr0ItemSetKey(items) {
+      return items.map(lr0ItemKey).sort().join("|");
+    }
+
+    function lr0GetNonterminals(grammar) {
+      return new Set(grammar.productions.map(p => p.left));
+    }
+
+    function lr0GetSymbols(grammar) {
+      const symbols = [];
+      const seen = new Set();
+
+      for (const p of grammar.productions) {
+        for (const x of p.right) {
+          if (!seen.has(x)) {
+            seen.add(x);
+            symbols.push(x);
+          }
+        }
+      }
+
+      return symbols;
+    }
+
+    function lr0Closure(grammar, items) {
+      const nonterminals = lr0GetNonterminals(grammar);
+      const result = [...items];
+      const seen = new Set(result.map(lr0ItemKey));
+      let changed = true;
+
+      while (changed) {
+        changed = false;
+
+        for (const item of [...result]) {
+          const p = grammar.productions[item.productionId];
+          if (item.dot >= p.right.length) continue;
+
+          const symbol = p.right[item.dot];
+          if (!nonterminals.has(symbol)) continue;
+
+          grammar.productions.forEach((prod, id) => {
+            if (prod.left === symbol) {
+              const nextItem = { productionId: id, dot: 0 };
+              const key = lr0ItemKey(nextItem);
+
+              if (!seen.has(key)) {
+                seen.add(key);
+                result.push(nextItem);
+                changed = true;
+              }
+            }
+          });
+        }
+      }
+
+      return result;
+    }
+
+    function lr0Goto(grammar, items, symbol) {
+      const moved = [];
+
+      for (const item of items) {
+        const p = grammar.productions[item.productionId];
+
+        if (item.dot < p.right.length && p.right[item.dot] === symbol) {
+          moved.push({ productionId: item.productionId, dot: item.dot + 1 });
+        }
+      }
+
+      if (!moved.length) return [];
+
+      return lr0Closure(grammar, moved);
+    }
+
+    function lr0BuildCollection(grammar) {
+      const states = [];
+      const transitions = [];
+      const symbols = lr0GetSymbols(grammar);
+
+      const initial = lr0Closure(grammar, [{ productionId: 0, dot: 0 }]);
+      states.push(initial);
+
+      let cursor = 0;
+      while (cursor < states.length) {
+        const current = states[cursor];
+
+        for (const symbol of symbols) {
+          const next = lr0Goto(grammar, current, symbol);
+          if (!next.length) continue;
+
+          const key = lr0ItemSetKey(next);
+          let to = states.findIndex(s => lr0ItemSetKey(s) === key);
+
+          if (to === -1) {
+            to = states.length;
+            states.push(next);
+          }
+
+          transitions.push({ from: cursor, symbol, to });
+        }
+
+        cursor++;
+      }
+
+      return { states, transitions };
+    }
+
+    function lr0GetKernelItems(state) {
+      return state.filter(item => item.productionId === 0 || item.dot > 0);
+    }
+
+    function lr0DetectConflicts(grammar, states) {
+      const conflicts = [];
+
+      states.forEach((state, index) => {
+        let reduceItems = 0;
+        let shiftItems = 0;
+
+        for (const item of state) {
+          const p = grammar.productions[item.productionId];
+          const isAcceptItem = item.productionId === 0 && item.dot === p.right.length;
+
+          if (isAcceptItem) continue;
+
+          if (item.dot === p.right.length) reduceItems++;
+          else shiftItems++;
+        }
+
+        if (reduceItems >= 2) {
+          conflicts.push({ state: index, type: "Reduce-Reduce", message: `I${index} 存在归约-归约冲突` });
+        }
+
+        if (reduceItems >= 1 && shiftItems >= 1) {
+          conflicts.push({ state: index, type: "Shift-Reduce", message: `I${index} 存在移进-归约冲突` });
+        }
+      });
+
+      return conflicts;
+    }
+
+    function lr0Build() {
+      try {
+        const grammar = lr0ParseGrammar(document.getElementById("lr0GrammarInput").value);
+        const collection = lr0BuildCollection(grammar);
+        const conflicts = lr0DetectConflicts(grammar, collection.states);
+
+        lr0LastResult = { grammar, ...collection, conflicts };
+        lr0RenderAll(lr0LastResult);
+
+        document.getElementById("lr0Terminal").textContent =
+          `$ 文法读取成功\n` +
+          `$ 自动增广: ${grammar.augmentedStart} -> ${grammar.startSymbol}\n` +
+          `$ 生成状态数: ${collection.states.length}\n` +
+          `$ 生成转移数: ${collection.transitions.length}\n` +
+          `$ 冲突数量: ${conflicts.length}\n` +
+          (conflicts.length ? "$ 该文法不是严格 LR(0)，可作为 SLR(1) 基础" : "$ 未发现 LR(0) 冲突");
+      } catch (err) {
+        document.getElementById("lr0Terminal").textContent = `$ 构造失败\n$ ${err.message}`;
+      }
+    }
+
+    function lr0RenderAll(result) {
+      lr0SetKpis(result.grammar.productions.length, result.states.length, result.transitions.length, result.conflicts.length);
+      lr0RenderStates(result);
+      lr0RenderTable(result);
+      lr0RenderGraph(result);
+      lr0RenderJson(result);
+    }
+
+    function lr0SetKpis(p, s, t, c) {
+      document.getElementById("lr0KpiProductions").textContent = p;
+      document.getElementById("lr0KpiStates").textContent = s;
+      document.getElementById("lr0KpiTransitions").textContent = t;
+      document.getElementById("lr0KpiConflicts").textContent = c;
+    }
+
+    function lr0RenderStates(result) {
+      const wrap = document.getElementById("lr0StatesOutput");
+      wrap.innerHTML = "";
+
+      const conflictMap = new Map();
+      for (const c of result.conflicts) {
+        if (!conflictMap.has(c.state)) conflictMap.set(c.state, []);
+        conflictMap.get(c.state).push(c.type);
+      }
+
+      result.states.forEach((state, index) => {
+        const kernel = lr0GetKernelItems(state);
+        const gotos = result.transitions.filter(t => t.from === index);
+        const hasConflict = conflictMap.has(index);
+
+        const card = document.createElement("div");
+        card.className = "state-card";
+        card.innerHTML = `
+          <div class="state-head">
+            <span class="state-id">I${index}</span>
+            <span class="state-tag ${hasConflict ? "conflict" : ""}">${hasConflict ? "Conflict" : "Normal"}</span>
+          </div>
+          <div class="state-body">
+            <h3>Kernel Items</h3>
+            <div class="mono">${kernel.map(item => `<div class="kernel-line">${escapeHtml(lr0ItemText(result.grammar, item))}</div>`).join("") || "(无)"}</div>
+            <h3>Closure Items</h3>
+            <div class="mono">${state.map(item => `<div class="closure-line">${escapeHtml(lr0ItemText(result.grammar, item))}</div>`).join("")}</div>
+            <h3>Goto</h3>
+            <div class="mono">${gotos.map(t => `<div class="goto-line">Goto(I${t.from}, ${escapeHtml(t.symbol)}) = I${t.to}</div>`).join("") || "None"}</div>
+            ${hasConflict ? `<h3>Conflict</h3><div class="mono">${conflictMap.get(index).map(x => `<div class="conflict-line">${x}</div>`).join("")}</div>` : ""}
+          </div>
+        `;
+
+        wrap.appendChild(card);
+      });
+    }
+
+    function lr0RenderTable(result) {
+      const nonterminals = lr0GetNonterminals(result.grammar);
+      const terminalSet = new Set();
+      const nonterminalSet = new Set();
+
+      for (const p of result.grammar.productions) {
+        for (const x of p.right) {
+          if (nonterminals.has(x)) nonterminalSet.add(x);
+          else terminalSet.add(x);
+        }
+      }
+
+      const symbols = [...terminalSet, ...nonterminalSet];
+
+      let html = "<table><thead><tr><th>状态</th>";
+      symbols.forEach(s => {
+        const tag = nonterminals.has(s) ? "GOTO" : "移进";
+        html += `<th>${escapeHtml(s)}<br><small>${tag}</small></th>`;
+      });
+      html += "</tr></thead><tbody>";
+
+      result.states.forEach((_, i) => {
+        html += `<tr><td>I${i}</td>`;
+
+        for (const s of symbols) {
+          const t = result.transitions.find(x => x.from === i && x.symbol === s);
+          html += `<td>${t ? "I" + t.to : ""}</td>`;
+        }
+
+        html += "</tr>";
+      });
+
+      html += "</tbody></table>";
+      document.getElementById("lr0GotoTable").innerHTML = html;
+    }
+
+    function lr0RenderGraph(result) {
+      const count = result.states.length;
+      const cols = Math.min(4, Math.max(1, Math.ceil(Math.sqrt(count))));
+      const nodeW = 142;
+      const nodeH = 56;
+      const gapX = 190;
+      const gapY = 120;
+      const margin = 46;
+      const positions = [];
+
+      for (let i = 0; i < count; i++) {
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        positions[i] = { x: margin + col * gapX, y: margin + row * gapY };
+      }
+
+      const rows = Math.ceil(count / cols);
+      const width = margin * 2 + cols * gapX;
+      const height = margin * 2 + rows * gapY;
+
+      let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="rgba(24,36,58,0.62)" />
+          </marker>
+        </defs>`;
+
+      for (const t of result.transitions) {
+        const a = positions[t.from];
+        const b = positions[t.to];
+        const same = t.from === t.to;
+
+        if (same) {
+          svg += `<path class="edge-line" d="M ${a.x + nodeW / 2} ${a.y} C ${a.x + 10} ${a.y - 42}, ${a.x + nodeW - 10} ${a.y - 42}, ${a.x + nodeW / 2} ${a.y}" />`;
+          svg += `<text class="edge-label" x="${a.x + nodeW / 2 - 6}" y="${a.y - 30}">${escapeHtml(t.symbol)}</text>`;
+        } else {
+          const x1 = a.x + nodeW;
+          const y1 = a.y + nodeH / 2;
+          const x2 = b.x;
+          const y2 = b.y + nodeH / 2;
+          const midX = (x1 + x2) / 2;
+          const midY = (y1 + y2) / 2;
+
+          svg += `<path class="edge-line" d="M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}" />`;
+          svg += `<text class="edge-label" x="${midX}" y="${midY - 7}">${escapeHtml(t.symbol)}</text>`;
+        }
+      }
+
+      result.states.forEach((state, i) => {
+        const p = positions[i];
+        const hasConflict = result.conflicts.some(c => c.state === i);
+
+        svg += `<rect class="node-rect" x="${p.x}" y="${p.y}" width="${nodeW}" height="${nodeH}" rx="12" />`;
+        svg += `<text x="${p.x + nodeW / 2}" y="${p.y + 23}" text-anchor="middle" font-size="16" font-weight="900">I${i}</text>`;
+        svg += `<text x="${p.x + nodeW / 2}" y="${p.y + 42}" text-anchor="middle" font-size="12">${hasConflict ? "Conflict" : state.length + " items"}</text>`;
+      });
+
+      svg += "</svg>";
+      document.getElementById("lr0GraphOutput").innerHTML = svg;
+    }
+
+    function lr0RenderJson(result) {
+      const data = {
+        augmentedGrammar: result.grammar.productions.map((p, i) => ({ id: i, left: p.left, right: p.right })),
+        states: result.states.map((state, i) => ({
+          id: `I${i}`,
+          kernel: lr0GetKernelItems(state).map(item => lr0ItemText(result.grammar, item)),
+          closure: state.map(item => lr0ItemText(result.grammar, item)),
+          goto: result.transitions.filter(t => t.from === i).reduce((obj, t) => {
+            obj[t.symbol] = `I${t.to}`;
+            return obj;
+          }, {})
+        })),
+        conflicts: result.conflicts
+      };
+
+      document.getElementById("lr0JsonOutput").textContent = JSON.stringify(data, null, 2);
+    }
+
+    function lr0ScanSource() {
+      const source = document.getElementById("lr0SourceInput").value;
+      const lines = source.split(/\n/);
+      const output = [];
+      const allowed = new Set(["id", "num", "+", "*", "(", ")"]);
+
+      lines.forEach((line, idx) => {
+        if (!line.trim()) return;
+
+        const tokens = lr0ScanExpressionLine(line);
+        const ok = tokens.every(t => allowed.has(t));
+        output.push(`第 ${idx + 1} 行: ${tokens.join(" ")} ${ok ? "[OK]" : "[含非法 token]"}`);
+      });
+
+      document.getElementById("lr0TokenOutput").textContent = output.length ? output.map(x => "$ " + x).join("\n") : "$ 暂无 token 输出";
+    }
+
+    function lr0ScanExpressionLine(line) {
+      const tokens = [];
+      let i = 0;
+
+      while (i < line.length) {
+        const ch = line[i];
+
+        if (/\s/.test(ch)) {
+          i++;
+          continue;
+        }
+
+        if (/[a-zA-Z_]/.test(ch)) {
+          i++;
+          while (i < line.length && /[a-zA-Z0-9_]/.test(line[i])) i++;
+          tokens.push("id");
+          continue;
+        }
+
+        if (/[0-9]/.test(ch)) {
+          i++;
+          while (i < line.length && /[0-9]/.test(line[i])) i++;
+          tokens.push("num");
+          continue;
+        }
+
+        if (["+", "*", "(", ")"].includes(ch)) {
+          tokens.push(ch);
+          i++;
+          continue;
+        }
+
+        tokens.push("ERROR(" + ch + ")");
+        i++;
+      }
+
+      return tokens;
+    }
+
+    lr0Build();
+    lr0ScanSource();
+
+
+    // =============================
+    // SLR(1) 分析表模块
+    // =============================
+    const SLR1_DEFAULT_GRAMMAR = `E -> E + T | T
+T -> T * F | F
+F -> ( E ) | id`;
+
+    let slr1LastResult = null;
+    let slr1LastParseSteps = [];
+
+    document.getElementById("slr1GrammarInput").value = SLR1_DEFAULT_GRAMMAR;
+
+    document.querySelectorAll(".mini-btn[data-slr1-view]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const view = btn.dataset.slr1View;
+        document.querySelectorAll(".mini-btn[data-slr1-view]").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        document.querySelectorAll(".slr1-view").forEach((v) => v.style.display = "none");
+        document.getElementById(`slr1View${slr1Cap(view)}`).style.display = "block";
+      });
+    });
+
+    function slr1Cap(s) {
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
+    function slr1LoadDefaultGrammar() {
+      document.getElementById("slr1GrammarInput").value = SLR1_DEFAULT_GRAMMAR;
+      document.getElementById("slr1Terminal").textContent = "$ 已加载实验四默认 SLR(1) 表达式文法";
+    }
+
+    function slr1Clear() {
+      slr1LastResult = null;
+      slr1LastParseSteps = [];
+      document.getElementById("slr1StatesOutput").innerHTML = "";
+      document.getElementById("slr1FollowOutput").innerHTML = "";
+      document.getElementById("slr1TableOutput").innerHTML = "";
+      document.getElementById("slr1ParseOutput").innerHTML = "";
+      document.getElementById("slr1JsonOutput").textContent = "";
+      document.getElementById("slr1Terminal").textContent = "$ 已清空 SLR(1) 结果";
+      slr1SetKpis(0, 0, 0, 0);
+      slr1SetConflictBadge(0);
+    }
+
+    function slr1ParseGrammar(raw) {
+      const lines = raw.split(/\n+/).map(x => x.trim()).filter(x => x && !x.startsWith("#"));
+      if (!lines.length) throw new Error("文法不能为空");
+
+      const productions = [];
+      let startSymbol = null;
+
+      for (const line of lines) {
+        const idx = line.indexOf("->");
+        if (idx === -1) throw new Error(`产生式缺少 -> ：${line}`);
+        const left = line.slice(0, idx).trim();
+        const rightPart = line.slice(idx + 2).trim();
+        if (!left || !rightPart) throw new Error(`产生式不完整：${line}`);
+        if (!startSymbol) startSymbol = left;
+
+        const alternatives = rightPart.split("|").map(x => x.trim()).filter(Boolean);
+        for (const alt of alternatives) {
+          const right = alt === "epsilon" || alt === "eps" || alt === "@" ? [] : alt.split(/\s+/).filter(Boolean);
+          productions.push({ left, right });
+        }
+      }
+
+      let augmentedStart = startSymbol + "'";
+      const leftSet = new Set(productions.map(p => p.left));
+      while (leftSet.has(augmentedStart)) augmentedStart += "'";
+
+      return {
+        startSymbol,
+        augmentedStart,
+        productions: [{ left: augmentedStart, right: [startSymbol] }, ...productions]
+      };
+    }
+
+    function slr1GetNonterminals(grammar) {
+      return new Set(grammar.productions.map(p => p.left));
+    }
+
+    function slr1GetTerminals(grammar) {
+      const nonterminals = slr1GetNonterminals(grammar);
+      const terminals = [];
+      const seen = new Set();
+      for (const p of grammar.productions) {
+        for (const x of p.right) {
+          if (!nonterminals.has(x) && !seen.has(x)) {
+            seen.add(x);
+            terminals.push(x);
+          }
+        }
+      }
+      return terminals;
+    }
+
+    function slr1GetSymbols(grammar) {
+      const symbols = [];
+      const seen = new Set();
+      for (const p of grammar.productions) {
+        for (const x of p.right) {
+          if (!seen.has(x)) {
+            seen.add(x);
+            symbols.push(x);
+          }
+        }
+      }
+      return symbols;
+    }
+
+    function slr1SetAdd(set, values) {
+      let changed = false;
+      for (const v of values) {
+        if (!set.has(v)) {
+          set.add(v);
+          changed = true;
+        }
+      }
+      return changed;
+    }
+
+    function slr1FirstOfSequence(seq, firstSets, nonterminals) {
+      const result = new Set();
+      if (!seq.length) {
+        result.add("epsilon");
+        return result;
+      }
+
+      let allNullable = true;
+      for (const symbol of seq) {
+        if (!nonterminals.has(symbol)) {
+          result.add(symbol);
+          allNullable = false;
+          break;
+        }
+
+        const fs = firstSets[symbol] || new Set();
+        for (const x of fs) {
+          if (x !== "epsilon") result.add(x);
+        }
+        if (!fs.has("epsilon")) {
+          allNullable = false;
+          break;
+        }
+      }
+
+      if (allNullable) result.add("epsilon");
+      return result;
+    }
+
+    function slr1ComputeFirst(grammar) {
+      const nonterminals = slr1GetNonterminals(grammar);
+      const first = {};
+      nonterminals.forEach(nt => first[nt] = new Set());
+
+      let changed = true;
+      while (changed) {
+        changed = false;
+        for (const p of grammar.productions) {
+          const fs = slr1FirstOfSequence(p.right, first, nonterminals);
+          if (slr1SetAdd(first[p.left], fs)) changed = true;
+        }
+      }
+      return first;
+    }
+
+    function slr1ComputeFollow(grammar, firstSets) {
+      const nonterminals = slr1GetNonterminals(grammar);
+      const follow = {};
+      nonterminals.forEach(nt => follow[nt] = new Set());
+      follow[grammar.startSymbol].add("#");
+
+      let changed = true;
+      while (changed) {
+        changed = false;
+        for (const p of grammar.productions) {
+          for (let i = 0; i < p.right.length; i++) {
+            const B = p.right[i];
+            if (!nonterminals.has(B)) continue;
+
+            const beta = p.right.slice(i + 1);
+            const firstBeta = slr1FirstOfSequence(beta, firstSets, nonterminals);
+            const withoutEpsilon = [...firstBeta].filter(x => x !== "epsilon");
+            if (slr1SetAdd(follow[B], withoutEpsilon)) changed = true;
+
+            if (!beta.length || firstBeta.has("epsilon")) {
+              if (slr1SetAdd(follow[B], follow[p.left])) changed = true;
+            }
+          }
+        }
+      }
+      return follow;
+    }
+
+    function slr1ItemKey(item) {
+      return `${item.productionId}@${item.dot}`;
+    }
+
+    function slr1ItemSetKey(items) {
+      return items.map(slr1ItemKey).sort().join("|");
+    }
+
+    function slr1ItemText(grammar, item) {
+      const p = grammar.productions[item.productionId];
+      const parts = [];
+      for (let i = 0; i < p.right.length; i++) {
+        if (i === item.dot) parts.push("·");
+        parts.push(p.right[i]);
+      }
+      if (item.dot === p.right.length) parts.push("·");
+      if (!p.right.length && item.dot === 0) parts.push("·", "epsilon");
+      return `${p.left} -> ${parts.join(" ")}`;
+    }
+
+    function slr1Closure(grammar, items) {
+      const nonterminals = slr1GetNonterminals(grammar);
+      const result = [...items];
+      const seen = new Set(result.map(slr1ItemKey));
+      let changed = true;
+
+      while (changed) {
+        changed = false;
+        for (const item of [...result]) {
+          const p = grammar.productions[item.productionId];
+          if (item.dot >= p.right.length) continue;
+          const symbol = p.right[item.dot];
+          if (!nonterminals.has(symbol)) continue;
+
+          grammar.productions.forEach((prod, id) => {
+            if (prod.left === symbol) {
+              const nextItem = { productionId: id, dot: 0 };
+              const key = slr1ItemKey(nextItem);
+              if (!seen.has(key)) {
+                seen.add(key);
+                result.push(nextItem);
+                changed = true;
+              }
+            }
+          });
+        }
+      }
+      return result;
+    }
+
+    function slr1Goto(grammar, items, symbol) {
+      const moved = [];
+      for (const item of items) {
+        const p = grammar.productions[item.productionId];
+        if (item.dot < p.right.length && p.right[item.dot] === symbol) {
+          moved.push({ productionId: item.productionId, dot: item.dot + 1 });
+        }
+      }
+      if (!moved.length) return [];
+      return slr1Closure(grammar, moved);
+    }
+
+    function slr1BuildCollection(grammar) {
+      const states = [];
+      const transitions = [];
+      const symbols = slr1GetSymbols(grammar);
+      const initial = slr1Closure(grammar, [{ productionId: 0, dot: 0 }]);
+      states.push(initial);
+
+      let cursor = 0;
+      while (cursor < states.length) {
+        const current = states[cursor];
+        for (const symbol of symbols) {
+          const next = slr1Goto(grammar, current, symbol);
+          if (!next.length) continue;
+          const key = slr1ItemSetKey(next);
+          let to = states.findIndex(s => slr1ItemSetKey(s) === key);
+          if (to === -1) {
+            to = states.length;
+            states.push(next);
+          }
+          if (!transitions.some(t => t.from === cursor && t.symbol === symbol && t.to === to)) {
+            transitions.push({ from: cursor, symbol, to });
+          }
+        }
+        cursor++;
+      }
+      return { states, transitions };
+    }
+
+    function slr1BuildTable(grammar, states, transitions, followSets) {
+      const nonterminals = slr1GetNonterminals(grammar);
+      const terminals = slr1GetTerminals(grammar);
+      const terminalsWithEnd = terminals.includes("#") ? terminals : [...terminals, "#"];
+      const gotoNonterminals = [...nonterminals].filter(x => x !== grammar.augmentedStart);
+      const action = states.map(() => ({}));
+      const gotoTable = states.map(() => ({}));
+      const conflicts = [];
+
+      function setAction(i, symbol, value, reason) {
+        const old = action[i][symbol];
+        if (old && old !== value) {
+          conflicts.push({ state: i, symbol, old, value, reason, type: old.startsWith("s") || value.startsWith("s") ? "Shift-Reduce" : "Reduce-Reduce" });
+          action[i][symbol] = `${old}/${value}`;
+        } else if (!old) {
+          action[i][symbol] = value;
+        }
+      }
+
+      for (const t of transitions) {
+        if (nonterminals.has(t.symbol)) gotoTable[t.from][t.symbol] = String(t.to);
+        else setAction(t.from, t.symbol, `s${t.to}`, `GOTO(I${t.from}, ${t.symbol}) = I${t.to}`);
+      }
+
+      states.forEach((state, i) => {
+        for (const item of state) {
+          const p = grammar.productions[item.productionId];
+          if (item.dot !== p.right.length) continue;
+
+          if (item.productionId === 0) {
+            setAction(i, "#", "acc", "增广产生式识别完成");
+          } else {
+            for (const a of followSets[p.left]) {
+              setAction(i, a, `r${item.productionId}`, `${p.left} -> ${p.right.join(" ") || "epsilon"}，a 属于 FOLLOW(${p.left})`);
+            }
+          }
+        }
+      });
+
+      return { terminals: terminalsWithEnd, nonterminals: gotoNonterminals, action, gotoTable, conflicts };
+    }
+
+    function slr1Build() {
+      try {
+        const grammar = slr1ParseGrammar(document.getElementById("slr1GrammarInput").value);
+        const first = slr1ComputeFirst(grammar);
+        const follow = slr1ComputeFollow(grammar, first);
+        const collection = slr1BuildCollection(grammar);
+        const table = slr1BuildTable(grammar, collection.states, collection.transitions, follow);
+        slr1LastResult = { grammar, first, follow, ...collection, ...table };
+        slr1RenderAll(slr1LastResult);
+        slr1ParseInputString();
+        document.getElementById("slr1Terminal").textContent =
+          `$ 文法读取成功\n` +
+          `$ 自动增广: ${grammar.augmentedStart} -> ${grammar.startSymbol}\n` +
+          `$ LR(0) 项目集状态数: ${collection.states.length}\n` +
+          `$ ACTION/GOTO 表已生成\n` +
+          (table.conflicts.length ? `$ 检测到冲突: ${table.conflicts.length}` : "$ 无冲突：该文法在当前构造下是 SLR(1) 文法");
+      } catch (err) {
+        document.getElementById("slr1Terminal").textContent = `$ 构造失败\n$ ${err.message}`;
+      }
+    }
+
+    function slr1RenderAll(result) {
+      const actionCount = result.action.reduce((sum, row) => sum + Object.keys(row).length, 0);
+      slr1SetKpis(result.grammar.productions.length, result.states.length, actionCount, result.conflicts.length);
+      slr1SetConflictBadge(result.conflicts.length);
+      slr1RenderStates(result);
+      slr1RenderFollow(result);
+      slr1RenderTable(result);
+      slr1RenderJson(result);
+    }
+
+    function slr1SetKpis(p, s, a, c) {
+      document.getElementById("slr1KpiProductions").textContent = p;
+      document.getElementById("slr1KpiStates").textContent = s;
+      document.getElementById("slr1KpiActions").textContent = a;
+      document.getElementById("slr1KpiConflicts").textContent = c;
+    }
+
+    function slr1SetConflictBadge(count) {
+      const badge = document.getElementById("slr1ConflictBadge");
+      if (!badge) return;
+      if (count === 0) {
+        badge.className = "pill";
+        badge.textContent = "无冲突";
+      } else {
+        badge.className = "pill danger";
+        badge.textContent = `${count} 个冲突`;
+      }
+    }
+
+    function slr1GetKernelItems(state) {
+      return state.filter(item => item.productionId === 0 || item.dot > 0);
+    }
+
+    function slr1RenderStates(result) {
+      const wrap = document.getElementById("slr1StatesOutput");
+      wrap.innerHTML = "";
+      result.states.forEach((state, index) => {
+        const kernel = slr1GetKernelItems(state);
+        const gotos = result.transitions.filter(t => t.from === index);
+        const card = document.createElement("div");
+        card.className = "state-card";
+        card.innerHTML = `
+          <div class="state-head">
+            <span class="state-id">I${index}</span>
+            <span class="state-tag">${state.length} items</span>
+          </div>
+          <div class="state-body">
+            <h3>Kernel Items</h3>
+            <div class="mono">${kernel.map(item => `<div class="kernel-line">${escapeHtml(slr1ItemText(result.grammar, item))}</div>`).join("") || "(无)"}</div>
+            <h3>Closure Items</h3>
+            <div class="mono">${state.map(item => `<div class="closure-line">${escapeHtml(slr1ItemText(result.grammar, item))}</div>`).join("")}</div>
+            <h3>Goto</h3>
+            <div class="mono">${gotos.map(t => `<div class="goto-line">GOTO(I${t.from}, ${escapeHtml(t.symbol)}) = I${t.to}</div>`).join("") || "None"}</div>
+          </div>`;
+        wrap.appendChild(card);
+      });
+    }
+
+    function slr1SetToText(set) {
+      return `{ ${[...set].filter(Boolean).sort().join(", ")} }`;
+    }
+
+    function slr1RenderFollow(result) {
+      const nonterminals = [...slr1GetNonterminals(result.grammar)].filter(x => x !== result.grammar.augmentedStart);
+      let html = "<table><thead><tr><th>非终结符</th><th>FIRST 集</th><th>FOLLOW 集</th></tr></thead><tbody>";
+      nonterminals.forEach(nt => {
+        html += `<tr><td>${escapeHtml(nt)}</td><td>${escapeHtml(slr1SetToText(result.first[nt] || new Set()))}</td><td>${escapeHtml(slr1SetToText(result.follow[nt] || new Set()))}</td></tr>`;
+      });
+      html += "</tbody></table>";
+      document.getElementById("slr1FollowOutput").innerHTML = html;
+    }
+
+    function slr1RenderTable(result) {
+      let html = "<table><thead><tr><th rowspan='2'>状态</th><th colspan='" + result.terminals.length + "'>ACTION</th><th colspan='" + result.nonterminals.length + "'>GOTO</th></tr><tr>";
+      result.terminals.forEach(t => html += `<th>${escapeHtml(t)}</th>`);
+      result.nonterminals.forEach(nt => html += `<th>${escapeHtml(nt)}</th>`);
+      html += "</tr></thead><tbody>";
+
+      result.states.forEach((_, i) => {
+        html += `<tr><td>${i}</td>`;
+        result.terminals.forEach(t => html += `<td>${escapeHtml(result.action[i][t] || "")}</td>`);
+        result.nonterminals.forEach(nt => html += `<td>${escapeHtml(result.gotoTable[i][nt] || "")}</td>`);
+        html += "</tr>";
+      });
+
+      html += "</tbody></table>";
+
+      if (result.conflicts.length) {
+        html += `<div class="terminal small">${result.conflicts.map(c => `$ I${c.state}, ${c.symbol}: ${c.old} 与 ${c.value} 冲突`).join("\n")}</div>`;
+      }
+
+      document.getElementById("slr1TableOutput").innerHTML = html;
+    }
+
+    function slr1TokenizeExpression(raw) {
+      const tokens = [];
+      let i = 0;
+      while (i < raw.length) {
+        const ch = raw[i];
+        if (/\s/.test(ch)) { i++; continue; }
+        if (/[a-zA-Z_]/.test(ch)) {
+          i++;
+          while (i < raw.length && /[a-zA-Z0-9_]/.test(raw[i])) i++;
+          tokens.push("id");
+          continue;
+        }
+        if (/[0-9]/.test(ch)) {
+          i++;
+          while (i < raw.length && /[0-9]/.test(raw[i])) i++;
+          tokens.push("num");
+          continue;
+        }
+        if (["+", "*", "(", ")"].includes(ch)) {
+          tokens.push(ch);
+          i++;
+          continue;
+        }
+        tokens.push("ERROR(" + ch + ")");
+        i++;
+      }
+      return tokens;
+    }
+
+    function slr1ScanSourceToTokens() {
+      const raw = document.getElementById("slr1SourceInput").value;
+      const tokens = slr1TokenizeExpression(raw).join(" ");
+      document.getElementById("slr1ParseInput").value = tokens;
+      document.getElementById("slr1Terminal").textContent = `$ 源码转 Token 串成功\n$ ${raw}\n$ ${tokens}`;
+    }
+
+    function slr1ParseInputString() {
+      try {
+        if (!slr1LastResult) slr1Build();
+        const result = slr1LastResult;
+        if (!result) return;
+
+        const raw = document.getElementById("slr1ParseInput").value.trim();
+        const input = raw ? raw.split(/\s+/).filter(Boolean) : [];
+        input.push("#");
+
+        const stateStack = [0];
+        const symbolStack = ["#"];
+        let cursor = 0;
+        const steps = [];
+        let status = "running";
+
+        for (let step = 1; step <= 100; step++) {
+          const state = stateStack[stateStack.length - 1];
+          const lookahead = input[cursor];
+          const action = result.action[state] ? result.action[state][lookahead] : "";
+          const beforeState = stateStack.join(" ");
+          const beforeSymbol = symbolStack.join(" ");
+          const remaining = input.slice(cursor).join(" ");
+
+          if (!action) {
+            steps.push({ step, stateStack: beforeState, symbolStack: beforeSymbol, input: remaining, action: `ERROR: ACTION[${state}, ${lookahead}] 为空` });
+            status = "error";
+            break;
+          }
+
+          if (action === "acc") {
+            steps.push({ step, stateStack: beforeState, symbolStack: beforeSymbol, input: remaining, action: "acc，分析成功" });
+            status = "accept";
+            break;
+          }
+
+          if (action.startsWith("s")) {
+            const nextState = Number.parseInt(action.slice(1), 10);
+            steps.push({ step, stateStack: beforeState, symbolStack: beforeSymbol, input: remaining, action: `移进 ${lookahead}，进入状态 ${nextState}` });
+            symbolStack.push(lookahead);
+            stateStack.push(nextState);
+            cursor++;
+            continue;
+          }
+
+          if (action.startsWith("r")) {
+            const productionId = Number.parseInt(action.slice(1), 10);
+            const p = result.grammar.productions[productionId];
+            const popCount = p.right.length;
+            for (let k = 0; k < popCount; k++) {
+              symbolStack.pop();
+              stateStack.pop();
+            }
+            const topState = stateStack[stateStack.length - 1];
+            const gotoState = result.gotoTable[topState][p.left];
+            if (gotoState === undefined) {
+              steps.push({ step, stateStack: beforeState, symbolStack: beforeSymbol, input: remaining, action: `ERROR: 归约 ${p.left} -> ${p.right.join(" ")} 后 GOTO(${topState}, ${p.left}) 为空` });
+              status = "error";
+              break;
+            }
+            symbolStack.push(p.left);
+            stateStack.push(Number.parseInt(gotoState, 10));
+            steps.push({ step, stateStack: beforeState, symbolStack: beforeSymbol, input: remaining, action: `按 ${p.left} -> ${p.right.join(" ") || "epsilon"} 归约，GOTO(${topState}, ${p.left})=${gotoState}` });
+            continue;
+          }
+
+          steps.push({ step, stateStack: beforeState, symbolStack: beforeSymbol, input: remaining, action: `ERROR: 无法识别动作 ${action}` });
+          status = "error";
+          break;
+        }
+
+        slr1LastParseSteps = steps;
+        slr1RenderParseSteps(steps, status);
+        slr1RenderJson(result);
+      } catch (err) {
+        document.getElementById("slr1ParseOutput").innerHTML = `<div class="terminal small">$ 分析失败\n$ ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function slr1RenderParseSteps(steps, status) {
+      let html = "<table><thead><tr><th>步骤</th><th>状态栈</th><th>符号栈</th><th>剩余输入</th><th>动作</th></tr></thead><tbody>";
+      steps.forEach(s => {
+        const cls = s.action.includes("acc") ? "parse-ok" : s.action.includes("ERROR") ? "parse-bad" : "";
+        html += `<tr><td>${s.step}</td><td>${escapeHtml(s.stateStack)}</td><td>${escapeHtml(s.symbolStack)}</td><td>${escapeHtml(s.input)}</td><td class="${cls}">${escapeHtml(s.action)}</td></tr>`;
+      });
+      html += "</tbody></table>";
+      if (status === "accept") html += `<div class="notice">分析结果：输入串被该 SLR(1) 文法接受。</div>`;
+      if (status === "error") html += `<div class="notice">分析结果：输入串不符合当前文法或分析表存在冲突。</div>`;
+      document.getElementById("slr1ParseOutput").innerHTML = html;
+    }
+
+    function slr1ExportJsonToView() {
+      if (!slr1LastResult) slr1Build();
+      if (slr1LastResult) slr1RenderJson(slr1LastResult);
+      document.querySelectorAll(".mini-btn[data-slr1-view]").forEach((b) => b.classList.remove("active"));
+      document.querySelector('.mini-btn[data-slr1-view="json"]').classList.add("active");
+      document.querySelectorAll(".slr1-view").forEach((v) => v.style.display = "none");
+      document.getElementById("slr1ViewJson").style.display = "block";
+    }
+
+    function slr1RenderJson(result) {
+      const data = {
+        grammar: result.grammar.productions.map((p, i) => ({ id: i, left: p.left, right: p.right })),
+        first: Object.fromEntries(Object.entries(result.first).map(([k, v]) => [k, [...v].sort()])),
+        follow: Object.fromEntries(Object.entries(result.follow).map(([k, v]) => [k, [...v].sort()])),
+        states: result.states.map((state, i) => ({
+          id: i,
+          items: state.map(item => slr1ItemText(result.grammar, item)),
+          goto: result.transitions.filter(t => t.from === i).reduce((obj, t) => {
+            obj[t.symbol] = t.to;
+            return obj;
+          }, {})
+        })),
+        action: result.action,
+        goto: result.gotoTable,
+        conflicts: result.conflicts,
+        parseSteps: slr1LastParseSteps
+      };
+      document.getElementById("slr1JsonOutput").textContent = JSON.stringify(data, null, 2);
+    }
+
+    slr1Build();
+
+
+    function escapeHtml(raw) {
+      return String(raw)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
